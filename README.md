@@ -40,7 +40,7 @@ for windows -
 python -u -m agentq
 ```
 
-### Run evals
+### run evals
 
 ```bash
  python -m test.tests_processor --orchestrator_type fsm
