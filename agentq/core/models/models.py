@@ -22,6 +22,7 @@ class Memory(BaseModel):
     objective: str
     current_state: State
     plan: Optional[List[Task]]
+    thought: str
     completed_tasks: Optional[List[Task]]
     current_task: Optional[List[Task]]
     final_response: Optional[str]
@@ -40,6 +41,7 @@ class PlannerInput(BaseModel):
 
 class PlannerOutput(BaseModel):
     plan: Optional[List[Task]]
+    thought: str
     next_task: Optional[Task]
     is_complete: bool
     final_response: Optional[str]

@@ -65,6 +65,7 @@ class Orchestrator:
                 objective=command,
                 current_state=State.PLAN,
                 plan=[],
+                thought='',
                 completed_tasks=[],
                 current_task=None,
                 final_response=None,
@@ -109,7 +110,8 @@ class Orchestrator:
 
         input_data = PlannerInput(
             objective=self.memory.objective,
-            # plan=self.memory.plan, not sending previous plan to the agent as it confuses it and the LLM does not genrate plan for current inital position
+            # not sending previous plan to the agent as it confuses it and the LLM does not genrate plan for current inital position
+            # plan=self.memory.plan,
             plan=None,
             task_for_review=self.memory.current_task,
             completed_tasks=self.memory.completed_tasks,
@@ -146,6 +148,7 @@ class Orchestrator:
         elif planner_output.next_task:
             self.memory.current_state = State.BROWSE
             self.memory.plan = planner_output.plan
+            self.memory.thought = planner_output.thought
             next_task_id = len(self.memory.completed_tasks) + 1
             self.memory.current_task = Task(
                 id=next_task_id,
@@ -170,6 +173,7 @@ class Orchestrator:
         print(f"{Fore.CYAN}{'='*50}")
         print(f"{Fore.YELLOW}Current State: {Fore.GREEN}{self.memory.current_state}")
         print(f"{Fore.YELLOW}Agent: {Fore.GREEN}{agent_type}")
+        print(f"{Fore.YELLOW}Current Thought: {Fore.GREEN}{self.memory.thought}")
         if len(self.memory.plan) == 0:
             print(f"{Fore.YELLOW}Plan:{Fore.GREEN} none")
         else:
