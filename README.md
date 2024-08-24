@@ -1,18 +1,6 @@
 # agentq - advanced reasoning and learning for autonomous AI agents
 
-agentq implementation
-
-### demo
-
-checkout this [loom video](https://www.loom.com/share/2037ee751b4f491c8d2ffd472d8223bd?sid=53d08a9f-5a9b-4388-ae69-445032b31738) for a quick demo
-
-### agentq and agentq
-
-you might notice two separate implementations of agentq in the repo. `agentq` folder contains a simpler approach to implementing multi-agent conversation required between a planner and a browser agent.
-
-the `agentq` folder contains another approach based on [finite state machines](https://github.com/sentient-engineering/multi-agent-fsm). there are slight nuances and both result in similar level or performace. however, the fsm approach is more scalable, and we will be doing further improvements in it.
-
-the downside of fsm agent is that it is dependent on [structured output](https://openai.com/index/introducing-structured-outputs-in-the-api/) from open ai. so you can't reliably use cheaper models like gpt4o-mini or other oss models which is possible in `agentq`
+agentq implementation code
 
 ### setup
 
