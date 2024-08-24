@@ -26,7 +26,7 @@ class BaseAgent:
         keep_message_history: bool = True,
     ):
         # Metdata
-        self.name = name
+        self.agnet_name = name
 
         # Messages
         self.system_prompt = system_prompt
@@ -75,7 +75,7 @@ class BaseAgent:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": input_data.model_dump_json()},
-                        {"type": "image_url", "image_url": {"url": f"{screenshot}"}},
+                        {"type": "image_url", "image_url": {"url": screenshot}},
                     ],
                 }
             )

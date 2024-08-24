@@ -109,7 +109,8 @@ class Orchestrator:
 
         input_data = PlannerInput(
             objective=self.memory.objective,
-            plan=self.memory.plan,
+            # plan=self.memory.plan, not sending previous plan to the agent as it confuses it and the LLM does not genrate plan for current inital position
+            plan=None,
             task_for_review=self.memory.current_task,
             completed_tasks=self.memory.completed_tasks,
         )

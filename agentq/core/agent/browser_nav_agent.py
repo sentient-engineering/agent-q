@@ -14,8 +14,10 @@ from agentq.core.skills.upload_file import upload_file
 
 class BrowserNavAgent(BaseAgent):
     def __init__(self):
+        self.name = "executor"
+        
         super().__init__(
-            name="executor",
+            name=self.name,
             system_prompt=LLM_PROMPTS["BROWSER_AGENT_PROMPT"],
             input_format=BrowserNavInput,
             output_format=BrowserNavOutput,

@@ -1,5 +1,6 @@
 from datetime import datetime
 from string import Template
+from typing import Optional
 
 from agentq.core.agent.base import BaseAgent
 from agentq.core.memory import ltm
@@ -9,11 +10,14 @@ from agentq.core.prompts.prompts import LLM_PROMPTS
 
 class PlannerAgent(BaseAgent):
     def __init__(self):
+        ltm: Optional[str] = None
+        # skipping ltm and user_prefrences
         ltm = self.__get_ltm()
         system_prompt = self.__modify_system_prompt(ltm)
+        self.name = "planner"
 
         super().__init__(
-            name="planner",
+            name=self.name,
             system_prompt=system_prompt,
             input_format=PlannerInput,
             output_format=PlannerOutput,
