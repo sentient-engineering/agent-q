@@ -1,5 +1,6 @@
 import asyncio
 import textwrap
+import uuid
 
 from colorama import Fore, init
 from dotenv import load_dotenv
@@ -31,6 +32,7 @@ class Orchestrator:
         self.playwright_manager = PlaywrightManager()
         self.eval_mode = eval_mode
         self.shutdown_event = asyncio.Event()
+        self.session_id = str(uuid.uuid4())
 
     async def start(self):
         print("Starting orchestrator")
@@ -117,7 +119,7 @@ class Orchestrator:
             completed_tasks=self.memory.completed_tasks,
         )
 
-        output: PlannerOutput = await agent.run(input_data, screenshot)
+        output: PlannerOutput = await agent.run(input_data, screenshot, self.session_id)
 
         self._update_memory_from_planner(output)
 
@@ -133,7 +135,7 @@ class Orchestrator:
 
         input_data = BrowserNavInput(task=current_task)
 
-        output: BrowserNavOutput = await agent.run(input_data)
+        output: BrowserNavOutput = await agent.run(input_data, session_id=self.session_id)
 
         self._print_task_result(output.completed_task)
 

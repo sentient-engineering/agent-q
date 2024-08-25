@@ -3,17 +3,16 @@ from typing import Callable, List, Optional, Tuple, Type
 
 import litellm
 # import openai
-from langsmith.wrappers import wrap_openai
-from pydantic import BaseModel
 from langfuse.openai import openai
-
+from langfuse.decorators import observe, langfuse_context
+from pydantic import BaseModel
 
 from agentq.utils.function_utils import get_function_schema
 from agentq.utils.logger import logger
 
 # Set global configurations for litellm
 litellm.logging = False
-litellm.success_callback = ["langsmith"]
+litellm.success_callback = ["langfuse"]
 
 
 class BaseAgent:
@@ -59,7 +58,14 @@ class BaseAgent:
     def _initialize_messages(self):
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    async def run(self, input_data: BaseModel, screenshot: str = None) -> BaseModel:
+    @observe()
+    async def run(self, input_data: BaseModel, screenshot: str = None, session_id: str = None) -> BaseModel:
+        
+        langfuse_context.update_current_trace(
+            name=self.agnet_name,
+            session_id=session_id
+        )
+
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
 

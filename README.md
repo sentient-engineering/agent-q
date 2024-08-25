@@ -32,7 +32,17 @@ for windows -
 "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
 ```
 
-4. set up env - add openai and [langsmith](https://smith.langchain.com) keys to .env file. you can refer .env.example. currently adding langsmith is required but if you do not want to use it for tracing - then you can comment the line `litellm.success_callback = ["langsmith"]` in the `./agentq/core/agent/base.py` file.
+4. set up env - add openai and [langfuse](https://langfuse.com) keys to .env file. you can refer .env.example. currently adding langfuse is required. If you do not want tracing - then you can do the following changes
+
+   - directly import open ai client via `import openai` rather than `from langfuse.openai import openai` in the `./agentq/core/agent/base.py` file.
+   - you would also have to comment out the @obseve decorator and the below piece of code from the `run` function in the same file
+
+   ```python
+   langfuse_context.update_current_trace(
+               name=self.agnet_name,
+               session_id=session_id
+         )
+   ```
 
 5. run the agent
 
