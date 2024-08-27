@@ -2,9 +2,11 @@ import json
 from typing import Callable, List, Optional, Tuple, Type
 
 import litellm
-# import openai
-from langfuse.openai import openai
-from langfuse.decorators import observe, langfuse_context
+import openai
+# from langfuse.openai import openai
+from langsmith.wrappers import wrap_openai
+from langsmith import traceable
+# from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
 
 from agentq.utils.function_utils import get_function_schema
@@ -38,8 +40,8 @@ class BaseAgent:
         self.output_format = output_format
 
         # Llm client
-        # self.client = wrap_openai(openai.Client())
-        self.client = openai.Client()
+        self.client = wrap_openai(openai.Client())
+        # self.client = openai.Client()
         # TODO: use lite llm here.
         # self.llm_config = {"model": "gpt-4o-2024-08-06"}
 
@@ -58,13 +60,13 @@ class BaseAgent:
     def _initialize_messages(self):
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    @observe()
+    # @traceable(run_type="chain", name=lambda self: self.agent_name)
     async def run(self, input_data: BaseModel, screenshot: str = None, session_id: str = None) -> BaseModel:
         
-        langfuse_context.update_current_trace(
-            name=self.agnet_name,
-            session_id=session_id
-        )
+        # langfuse_context.update_current_trace(
+        #     name=self.agnet_name,
+        #     session_id=session_id
+        # )
 
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")

@@ -1,13 +1,16 @@
 import asyncio
 import textwrap
 import uuid
+from typing import Dict
 
 from colorama import Fore, init
 from dotenv import load_dotenv
-from typing import Dict
+from langsmith import traceable
 
 from agentq.core.agent.base import BaseAgent
 from agentq.core.models.models import (
+    AgentQInput,
+    AgentQOutput,
     BrowserNavInput,
     BrowserNavOutput,
     Memory,
@@ -60,14 +63,16 @@ class Orchestrator:
             None, input, "Enter your command (or type 'exit' to quit) "
         )
 
+    @traceable(run_type="chain", name="execute_command")
     async def execute_command(self, command: str):
         try:
             # Create initial memory
             self.memory = Memory(
                 objective=command,
-                current_state=State.PLAN,
+                # change to PLAN for using separate planner and browser agent
+                current_state=State.CONTINUE,
                 plan=[],
-                thought='',
+                thought="",
                 completed_tasks=[],
                 current_task=None,
                 final_response=None,
@@ -101,6 +106,9 @@ class Orchestrator:
             await self._handle_planner()
         elif current_state == State.BROWSE:
             await self._handle_browser_navigation()
+        elif current_state == State.CONTINUE:
+            print("state continue")
+            await self._handle_agnetq()
         else:
             raise ValueError(f"Unhandled state: {current_state}")
 
@@ -135,13 +143,34 @@ class Orchestrator:
 
         input_data = BrowserNavInput(task=current_task)
 
-        output: BrowserNavOutput = await agent.run(input_data, session_id=self.session_id)
+        output: BrowserNavOutput = await agent.run(
+            input_data, session_id=self.session_id
+        )
 
         self._print_task_result(output.completed_task)
 
         self._update_memory_from_browser_nav(output)
 
         print(f"{Fore.MAGENTA}Executor has completed a task.")
+
+    async def _handle_agnetq(self):
+        agent = self.state_to_agent_map[State.CONTINUE]
+        self._print_memory_and_agent(agent.name)
+
+        screenshot = await get_screenshot()
+
+        input_data = AgentQInput(
+            objective=self.memory.objective,
+            current_task=self.memory.current_task,
+            # task_for_review=self.memory.current_task,
+            completed_tasks=self.memory.completed_tasks,
+        )
+
+        output: AgentQOutput = await agent.run(input_data, screenshot, self.session_id)
+
+        self._update_memory_from_agentq(output)
+
+        print(f"{Fore.MAGENTA}Agent Q has updated the memory.")
 
     def _update_memory_from_planner(self, planner_output: PlannerOutput):
         if planner_output.is_complete:
@@ -165,6 +194,24 @@ class Orchestrator:
         self.memory.completed_tasks.append(browser_nav_output.completed_task)
         self.memory.current_task = None
         self.memory.current_state = State.PLAN
+
+    def _update_memory_from_agentq(self, agentq_output: AgentQOutput):
+        if agentq_output.is_complete:
+            self.memory.current_state = State.COMPLETED
+            self.memory.final_response = agentq_output.final_response
+        elif agentq_output.next_task:
+            self.memory.current_state = State.CONTINUE
+            self.memory.plan = agentq_output.plan
+            self.memory.thought = agentq_output.thought
+            current_task_id = len(self.memory.completed_tasks) + 1
+            self.memory.current_task = Task(
+                id=current_task_id,
+                description=agentq_output.next_task.description,
+                url=None,
+                result=None,
+            )
+        else:
+            raise ValueError("Planner did not provide next task or completion status")
 
     async def shutdown(self):
         print("Shutting down orchestrator!")

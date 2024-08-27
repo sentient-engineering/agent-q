@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -9,6 +9,7 @@ class State(str, Enum):
     PLAN = "plan"
     BROWSE = "browse"
     COMPLETED = "completed"
+    CONTINUE = "continue"
 
 
 class Task(BaseModel):
@@ -54,3 +55,20 @@ class BrowserNavInput(BaseModel):
 
 class BrowserNavOutput(BaseModel):
     completed_task: Task
+
+
+# AgentQ
+class AgentQInput(BaseModel):
+    objective: str
+    current_task: Optional[Task]
+    completed_tasks: Optional[List[Task]]
+    # task_for_review: Optional[Task]
+
+
+class AgentQOutput(BaseModel):
+    plan: Optional[List[Task]]
+    thought: str
+    current_task_with_result: Union[Task, str]
+    next_task: Optional[Task]
+    is_complete: bool
+    final_response: Optional[str]

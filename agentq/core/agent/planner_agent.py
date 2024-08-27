@@ -11,7 +11,6 @@ from agentq.core.prompts.prompts import LLM_PROMPTS
 class PlannerAgent(BaseAgent):
     def __init__(self):
         ltm: Optional[str] = None
-        # skipping ltm and user_prefrences
         ltm = self.__get_ltm()
         system_prompt = self.__modify_system_prompt(ltm)
         self.name = "planner"
