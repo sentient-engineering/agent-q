@@ -42,6 +42,9 @@ class Orchestrator:
         await self.playwright_manager.async_initialize(eval_mode=self.eval_mode)
         print("Browser started and ready")
 
+        # Initialize AgentQ asynchronously
+        await self.state_to_agent_map[State.CONTINUE].initialize()
+
         if not self.eval_mode:
             await self._command_loop()
 
@@ -107,7 +110,6 @@ class Orchestrator:
         elif current_state == State.BROWSE:
             await self._handle_browser_navigation()
         elif current_state == State.CONTINUE:
-            print("state continue")
             await self._handle_agnetq()
         else:
             raise ValueError(f"Unhandled state: {current_state}")
@@ -157,7 +159,7 @@ class Orchestrator:
         agent = self.state_to_agent_map[State.CONTINUE]
         self._print_memory_and_agent(agent.name)
 
-        screenshot = await get_screenshot()
+        # screenshot = await get_screenshot()
 
         input_data = AgentQInput(
             objective=self.memory.objective,
@@ -166,7 +168,7 @@ class Orchestrator:
             completed_tasks=self.memory.completed_tasks,
         )
 
-        output: AgentQOutput = await agent.run(input_data, screenshot, self.session_id)
+        output: AgentQOutput = await agent.run(input_data, session_id=self.session_id)
 
         self._update_memory_from_agentq(output)
 
@@ -201,6 +203,11 @@ class Orchestrator:
             self.memory.final_response = agentq_output.final_response
         elif agentq_output.next_task:
             self.memory.current_state = State.CONTINUE
+            # current_task_with_result can also be a string "no current task"
+            if isinstance(agentq_output.current_task_with_result, Task):
+                self.memory.completed_tasks.append(
+                    agentq_output.current_task_with_result
+                )
             self.memory.plan = agentq_output.plan
             self.memory.thought = agentq_output.thought
             current_task_id = len(self.memory.completed_tasks) + 1

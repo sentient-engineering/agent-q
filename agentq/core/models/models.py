@@ -18,7 +18,6 @@ class Task(BaseModel):
     url: Optional[str]
     result: Optional[str]
 
-
 class Memory(BaseModel):
     objective: str
     current_state: State

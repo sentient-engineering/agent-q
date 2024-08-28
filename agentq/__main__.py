@@ -1,8 +1,8 @@
 import asyncio
 
+from agentq.core.agent.agentq import AgentQ
 from agentq.core.agent.browser_nav_agent import BrowserNavAgent
 from agentq.core.agent.planner_agent import PlannerAgent
-from agentq.core.agent.agentq import AgentQ
 from agentq.core.models.models import State
 from agentq.core.orchestrator.orchestrator import Orchestrator
 

@@ -3,9 +3,11 @@ from typing import Callable, List, Optional, Tuple, Type
 
 import litellm
 import openai
+from langsmith import traceable
+
 # from langfuse.openai import openai
 from langsmith.wrappers import wrap_openai
-from langsmith import traceable
+
 # from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
 
@@ -32,7 +34,10 @@ class BaseAgent:
 
         # Messages
         self.system_prompt = system_prompt
-        self._initialize_messages()
+        # handling the case where agent has to do async intialisation as system prompt depends on some async functions.
+        # in those cases, we do init with empty system prompt string and then handle adding system prompt to messages array in the agent itself
+        if self.system_prompt:
+            self._initialize_messages()
         self.keep_message_history = keep_message_history
 
         # Input-output format
@@ -60,9 +65,10 @@ class BaseAgent:
     def _initialize_messages(self):
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    # @traceable(run_type="chain", name=lambda self: self.agent_name)
-    async def run(self, input_data: BaseModel, screenshot: str = None, session_id: str = None) -> BaseModel:
-        
+    @traceable(run_type="chain", name="agent_run")
+    async def run(
+        self, input_data: BaseModel, screenshot: str = None, session_id: str = None
+    ) -> BaseModel:
         # langfuse_context.update_current_trace(
         #     name=self.agnet_name,
         #     session_id=session_id
@@ -75,11 +81,7 @@ class BaseAgent:
         if not self.keep_message_history:
             self._initialize_messages()
 
-        if screenshot is None:
-            self.messages.append(
-                {"role": "user", "content": input_data.model_dump_json()}
-            )
-        else:
+        if screenshot:
             self.messages.append(
                 {
                     "role": "user",
@@ -88,6 +90,10 @@ class BaseAgent:
                         {"type": "image_url", "image_url": {"url": screenshot}},
                     ],
                 }
+            )
+        else:
+            self.messages.append(
+                {"role": "user", "content": input_data.model_dump_json()}
             )
 
         # print(self.messages)
@@ -141,7 +147,7 @@ class BaseAgent:
                 }
             )
         except Exception as e:
-            logger.info(f"Error occurred calling the tool {function_name}: {str(e)}")
+            logger.error(f"Error occurred calling the tool {function_name}: {str(e)}")
             self.messages.append(
                 {
                     "tool_call_id": tool_call.id,
