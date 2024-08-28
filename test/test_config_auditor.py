@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict, List
 
-from agentq.config import PROJECT_TEST_ROOT
+from agentq.config.config import PROJECT_TEST_ROOT
 from test.test_utils import load_config
 
 

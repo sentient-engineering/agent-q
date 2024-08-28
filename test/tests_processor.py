@@ -1,4 +1,3 @@
-import argparse
 import asyncio
 import json
 import os
@@ -9,13 +8,13 @@ from playwright.async_api import Page
 from tabulate import tabulate
 from termcolor import colored
 
-from agentq.config import PROJECT_TEST_ROOT
-from agentq.core.system_orchestrator import SystemOrchestrator
-from agentq.utils.logger import logger
+from agentq.config.config import PROJECT_TEST_ROOT
+from agentq.core.agent.agentq import AgentQ
 from agentq.core.agent.browser_nav_agent import BrowserNavAgent
 from agentq.core.agent.planner_agent import PlannerAgent
 from agentq.core.models.models import State
 from agentq.core.orchestrator.orchestrator import Orchestrator
+from agentq.utils.logger import logger
 from test.evaluators import evaluator_router
 from test.test_utils import (
     get_formatted_current_timestamp,
@@ -128,7 +127,7 @@ def print_test_result(task_result: Dict[str, Any], index: int, total: int) -> No
 
 async def execute_single_task(
     task_config: Dict[str, Any],
-    orchestrator: SystemOrchestrator,
+    orchestrator: Orchestrator,
     page: Page,
     logs_dir: str,
 ) -> Dict[str, Any]:
@@ -183,7 +182,7 @@ async def execute_single_task(
 
 
 async def run_tests(
-    orchestrator: SystemOrchestrator | Orchestrator,
+    orchestrator: Orchestrator,
     min_task_index: int,
     max_task_index: int,
     test_file: str = "",
@@ -200,10 +199,6 @@ async def run_tests(
     test_configurations = load_config(test_file)
     test_results_id = create_test_results_id(test_results_id, test_file)
     results_dir = create_results_dir(test_file, test_results_id)
-
-    if orchestrator is None:
-        orchestrator = SystemOrchestrator(eval_mode=True)
-        await orchestrator.start()
 
     page = await orchestrator.playwright_manager.get_current_page()
     test_results = []
@@ -287,31 +282,17 @@ async def run_tests(
 
 
 # Main execution function (if needed)
-async def main(orchestrator_type: str):
-    orchestrator_type = None
-    if orchestrator_type == "vanilla":
-        orchestrator = SystemOrchestrator(eval_mode=True)
-    else:
-        state_to_agent_map = {
-            State.PLAN: PlannerAgent(),
-            State.BROWSE: BrowserNavAgent(),
-        }
-        orchestrator = Orchestrator(
-            state_to_agent_map=state_to_agent_map, eval_mode=True
-        )
+async def main():
+    state_to_agent_map = {
+        State.PLAN: PlannerAgent(),
+        State.BROWSE: BrowserNavAgent(),
+        State.CONTINUE: AgentQ(),
+    }
+    orchestrator = Orchestrator(state_to_agent_map=state_to_agent_map, eval_mode=True)
     await orchestrator.start()
-    await run_tests(orchestrator, 0, 30)  # Example: Run first 5 tests
+    await run_tests(orchestrator, 12, 31)  # Example: Run first 5 tests
     await orchestrator.shutdown()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run tests with specified parameters.")
-    parser.add_argument(
-        "--orchestrator_type",
-        type=str,
-        default="vanilla",
-        choices=["vanilla", "fsm"],
-        help="Specify the type of orchestrator: vanilla or fsm",
-    )
-    args = parser.parse_args()
-    asyncio.run(main(args.orchestrator_type))
+    asyncio.run(main())
