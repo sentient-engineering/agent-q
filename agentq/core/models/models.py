@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel
 
@@ -12,11 +12,37 @@ class State(str, Enum):
     CONTINUE = "continue"
 
 
+class ActionType(str, Enum):
+    CLICK = "CLICK"
+    TYPE = "TYPE"
+    GOTO = "GOTO"
+
+
+class ClickAction(BaseModel):
+    type: Literal[ActionType.CLICK]
+    mmid: str
+
+
+class TypeAction(BaseModel):
+    type: Literal[ActionType.TYPE]
+    mmid: str
+    content: str
+
+
+class GotoAction(BaseModel):
+    type: Literal[ActionType.GOTO]
+    website: str
+
+
+Action = Union[ClickAction, TypeAction, GotoAction]
+
+
 class Task(BaseModel):
     id: int
     description: str
     url: Optional[str]
     result: Optional[str]
+
 
 class Memory(BaseModel):
     objective: str
@@ -67,7 +93,8 @@ class AgentQInput(BaseModel):
 class AgentQOutput(BaseModel):
     plan: Optional[List[Task]]
     thought: str
-    current_task_with_result: Union[Task, str]
+    current_task_with_result: Optional[Task]
+    current_task_actions: Optional[List[Action]]
     next_task: Optional[Task]
     is_complete: bool
     final_response: Optional[str]
