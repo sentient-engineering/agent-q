@@ -62,7 +62,7 @@ async def click(
     # Wrap the click action and subsequent operations in a try-except block
     try:
         # Set up navigation expectation
-        async with page.expect_navigation(wait_until="domcontentloaded", timeout=5000):
+        async with page.expect_navigation(wait_until="domcontentloaded", timeout=10000):
             result = await do_click(page, selector, wait_before_execution)
 
         # Wait for a short time to ensure the page has settled

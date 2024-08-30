@@ -1,5 +1,7 @@
+import asyncio
 import inspect
 
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 from typing_extensions import Annotated
 
 from agentq.core.web_driver.playwright import PlaywrightManager
@@ -12,6 +14,7 @@ async def openurl(
         "The URL to navigate to. Value must include the protocol (http:// or https://).",
     ],
     timeout: Annotated[int, "Additional wait time in seconds after initial load."],
+    max_retries: Annotated[int, "Maximum number of retry attempts"] = 3,
 ) -> Annotated[str, "Returns the result of this request in text form"]:
     """
     Opens a specified URL in the active browser instance. Waits for an initial load event, then waits for either
@@ -20,6 +23,7 @@ async def openurl(
     Parameters:
     - url: The URL to navigate to.
     - timeout: Additional time in seconds to wait after the initial load before considering the navigation successful.
+    - max_retries: Maximum number of retry attempts (default: 3).
 
     Returns:
     - URL of the new page.
@@ -30,17 +34,39 @@ async def openurl(
     page = await browser_manager.get_current_page()
     # Navigate to the URL with a short timeout to ensure the initial load starts
     function_name = inspect.currentframe().f_code.co_name  # type: ignore
-    try:
-        await browser_manager.take_screenshots(f"{function_name}_start", page)
-        url = ensure_protocol(url)
-        await page.goto(url, timeout=timeout * 1000)  # type: ignore
-    except Exception as e:
-        logger.warn(
-            f"Initial navigation to {url} failed: {e}. Will try to continue anyway."
-        )  # happens more often than not, but does not seem to be a problem
-        import traceback
+    url = ensure_protocol(url)
 
-        traceback.print_exc()
+    for attempt in range(max_retries):
+        try:
+            await browser_manager.take_screenshots(f"{function_name}_start", page)
+
+            # Use a longer timeout for navigation
+            await page.goto(
+                url, timeout=max(30000, timeout * 1000), wait_until="domcontentloaded"
+            )
+
+            # Wait for network idle to ensure page is fully loaded
+            await page.wait_for_load_state(
+                "networkidle", timeout=max(30000, timeout * 1000)
+            )
+
+            await browser_manager.take_screenshots(f"{function_name}_end", page)
+
+            title = await page.title()
+            final_url = page.url
+            logger.info(f"Successfully loaded page: {final_url}")
+            return f"Page loaded: {final_url}, Title: {title}"
+
+        except PlaywrightTimeoutError as e:
+            logger.warning(f"Timeout error on attempt {attempt + 1}: {e}")
+            if attempt == max_retries - 1:
+                logger.error(f"Failed to load {url} after {max_retries} attempts")
+                return f"Failed to load page: {url}. Error: Timeout after {max_retries} attempts"
+            await asyncio.sleep(2)  # Wait before retrying
+
+        except Exception as e:
+            logger.error(f"Error navigating to {url}: {e}")
+            return f"Failed to load page: {url}. Error: {str(e)}"
 
     await browser_manager.take_screenshots(f"{function_name}_end", page)
 
