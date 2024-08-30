@@ -263,11 +263,11 @@ LLM_PROMPTS = {
     ## Very Important ## - LIMIT YOUR ACTIONS TO THE CURRENT TASK, DO NOT GO BEYOND PERFORMING CURRENT TASK.
     ## Very Important ## - You are part of an overall larger system where further tasks in the plan are completed by another AI. Thus, you are only supposed to perform one task on the browser and then leave the rest for another AI which is better than you to complete. 
 """,
-    "AGENTQ_ACTION_PROMPT": """
+    "AGENTQ_PLAN_ACTION_PROMPT": """
 You are a web automation planner. Your role is to receive an objective from the user and plan the next steps to complete the overall objective. You are part of an overall larger system where the actions you output are completed by a browser actuation system.
 
  ## Execution Flow Guidelines: ##
- 1. You will look at the tasks that have been done till now, their successes/ failures. If no tasks have been completed till now, that means you have to start from scratch. 
+1. You will look at the tasks that have been done till now, their successes/ failures. If no tasks have been completed till now, that means you have to start from scratch. 
 2. Once you have carefully observed the completed tasks and their results, then think step by step and break down the objective into a sequence of simple tasks and come up with a plan needed to complete the overall objective.
 3. Identify the next overall task and the actions that are needed to be taken on the browser to complete the next task. These actions will be given to a browser actuation system which will actually perform these actions and provide you with the result of these actions.
 
@@ -276,12 +276,12 @@ Your input and output will strictly be a well-formatted JSON with attributes as 
  Input:
  - objective: Mandatory string representing the main objective to be achieved via web automation
  - completed_tasks: Optional list of all tasks that have been completed so far in order to complete the objective. This also has the result of each of the task/action that was done previously. The result can be successful or unsuccessful. In either cases, CAREFULLY OBSERVE this array of tasks and update plan accordingly to meet the objective.
- - current_page_dom : Mandatory string containing a DOM represntation of the current web page you started the current task with. It has mmid attached to all the elements which would be helpful for you to find elements for doing current task.
+ - current_page_dom : Mandatory string containing a DOM represntation of the current web page. It has mmid attached to all the elements which would be helpful for you to find elements for performing actions for the next task.
 
 Output:
  - thought - A Mandatory string specifying your thoughts on how did you come up with the plan to solve the objective.How did you come up with the next task and why did you choose particular actions to achieve the next task.  Reason deeply and think step by step to illustrate your thoughts here.
- - plan: Mandaory List of tasks that need be performed AFTER the current task to achieve the objective. Think step by step. Update this based on the overall objective, tasks completed till now and their results and the current state of the webpage. You will also be provided with a DOM representation of the browser page to plan better.
- - next_task: Optional String representing detailed next task to be executed. Next task is consistent with the plan. This needs to be present for every response except when objective has been achieved. Once you are done with the current task, SEND THE next_task from the OVERALL plan. MAKE SURE to look at the provided screenshot to adjust the appropriate next task.
+ - plan: Mandaory List of tasks that need be performed to achieve the objective. Think step by step. Update this based on the overall objective, tasks completed till now and their results and the current state of the webpage. You will also be provided with a DOM representation of the browser page to plan better.
+ - next_task: Optional String representing detailed next task to be executed. Next task is consistent with the plan. This needs to be present for every response except when objective has been achieved. SEND THE next_task from the OVERALL plan. MAKE SURE to look at the provided DOM representation to adjust the appropriate next task.
  - next_task_actions - You have to output here a list of strings indicating the actions that need to be done in order to complete the above next task.
  - is_complete: Mandatory boolean indicating whether the entire objective has been achieved. Return True when the exact objective is complete without any compromises or you are absolutely convinced that the objective cannot be completed, no otherwise. This is mandatory for every response.
  - final_response: Optional string representing the summary of the completed work. This is to be returned only if the objective is COMPLETE. This is the final answer string that will be returned to the user. Use the plan and result to come with final response for the objective provided by the user.
@@ -295,7 +295,7 @@ Output:
 Actions available and their description - 
 1. CLICK[MMID, WAIT_BEFORE_EXECUTION] - Executes a click action on the element matching the given mmid attribute value. MMID is always a number. Returns Success if click was successful or appropriate error message if the element could not be clicked.
 2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
-GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
+3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
 
 
  ## Planning Guidelines: ##

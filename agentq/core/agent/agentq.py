@@ -38,7 +38,7 @@ class AgentQ(BaseAgent):
         return ltm.get_user_ltm()
 
     def __modify_system_prompt(self, ltm):
-        system_prompt: str = LLM_PROMPTS["AGENTQ_ACTION_PROMPT"]
+        system_prompt: str = LLM_PROMPTS["AGENTQ_PLAN_ACTION_PROMPT"]
 
         substitutions = {
             "basic_user_information": ltm if ltm is not None else "",
