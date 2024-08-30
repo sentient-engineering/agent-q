@@ -1,7 +1,7 @@
 import asyncio
 import textwrap
 import uuid
-from typing import Dict
+from typing import Dict, List
 
 from colorama import Fore, init
 from dotenv import load_dotenv
@@ -9,6 +9,8 @@ from langsmith import traceable
 
 from agentq.core.agent.base import BaseAgent
 from agentq.core.models.models import (
+    Action,
+    ActionType,
     AgentQInput,
     AgentQOutput,
     BrowserNavInput,
@@ -19,9 +21,12 @@ from agentq.core.models.models import (
     State,
     Task,
 )
+from agentq.core.skills.click_using_selector import click
+from agentq.core.skills.enter_text_using_selector import EnterTextEntry, entertext
 from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_type
 from agentq.core.skills.get_screenshot import get_screenshot
 from agentq.core.skills.get_url import geturl
+from agentq.core.skills.open_url import openurl
 from agentq.core.web_driver.playwright import PlaywrightManager
 
 init(autoreset=True)
@@ -172,9 +177,34 @@ class Orchestrator:
 
         output: AgentQOutput = await agent.run(input_data, session_id=self.session_id)
 
-        self._update_memory_from_agentq(output)
+        await self._update_memory_from_agentq(output)
 
         print(f"{Fore.MAGENTA}Agent Q has updated the memory.")
+
+    async def handle_agentq_actions(self, actions: List[Action]):
+        results = []
+        for action in actions:
+            if action.type == ActionType.GOTO_URL:
+                result = await openurl(url=action.website, timeout=action.timeout or 0)
+                print("Action - GOTO")
+            elif action.type == ActionType.TYPE:
+                entry = EnterTextEntry(
+                    query_selector=f"[mmid='{action.mmid}']", text=action.content
+                )
+                result = await entertext(entry)
+                print("Action - TYPE")
+            elif action.type == ActionType.CLICK:
+                result = await click(
+                    selector=f"[mmid='{action.mmid}']",
+                    wait_before_execution=action.wait_before_execution or 0,
+                )
+                print("Action - CLICK")
+            else:
+                result = f"Unsupported action type: {action.type}"
+
+            results.append(result)
+
+        return results
 
     def _update_memory_from_planner(self, planner_output: PlannerOutput):
         if planner_output.is_complete:
@@ -199,17 +229,26 @@ class Orchestrator:
         self.memory.current_task = None
         self.memory.current_state = State.PLAN
 
-    def _update_memory_from_agentq(self, agentq_output: AgentQOutput):
+    async def _update_memory_from_agentq(self, agentq_output: AgentQOutput):
         if agentq_output.is_complete:
             self.memory.current_state = State.COMPLETED
             self.memory.final_response = agentq_output.final_response
         elif agentq_output.next_task:
             self.memory.current_state = State.CONTINUE
             # current_task_with_result can also be a string "no current task"
-            if isinstance(agentq_output.current_task_with_result, Task):
-                self.memory.completed_tasks.append(
-                    agentq_output.current_task_with_result
+            # if isinstance(agentq_output.current_task_with_result, Task):
+            #     self.memory.completed_tasks.append(
+            #         agentq_output.current_task_with_result
+            #     )
+            if agentq_output.next_task_actions:
+                action_results = await self.handle_agentq_actions(
+                    agentq_output.next_task_actions
                 )
+                print("Action results:", action_results)
+                flattened_results = "; ".join(action_results)
+                agentq_output.next_task.result = flattened_results
+
+            self.memory.completed_tasks.append(agentq_output.next_task)
             self.memory.plan = agentq_output.plan
             self.memory.thought = agentq_output.thought
             current_task_id = len(self.memory.completed_tasks) + 1

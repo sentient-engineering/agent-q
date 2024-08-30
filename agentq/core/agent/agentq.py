@@ -17,6 +17,7 @@ from agentq.core.skills.open_url import openurl
 from agentq.core.skills.press_key_combination import press_key_combination
 from agentq.utils.logger import logger
 
+
 class AgentQ(BaseAgent):
     def __init__(self):
         self.name = "agentq"
@@ -29,7 +30,7 @@ class AgentQ(BaseAgent):
             input_format=AgentQInput,
             output_format=AgentQOutput,
             keep_message_history=False,
-            tools=self._get_tools(),
+            # tools=self._get_tools(),
         )
 
     @staticmethod
@@ -37,7 +38,7 @@ class AgentQ(BaseAgent):
         return ltm.get_user_ltm()
 
     def __modify_system_prompt(self, ltm):
-        system_prompt: str = LLM_PROMPTS["AGENTQ_PROMPT"]
+        system_prompt: str = LLM_PROMPTS["AGENTQ_ACTION_PROMPT"]
 
         substitutions = {
             "basic_user_information": ltm if ltm is not None else "",

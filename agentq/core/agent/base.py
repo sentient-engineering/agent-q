@@ -93,7 +93,18 @@ class BaseAgent:
             )
         else:
             self.messages.append(
-                {"role": "user", "content": input_data.model_dump_json()}
+                {
+                    "role": "user",
+                    "content": input_data.model_dump_json(exclude={"current_page_dom"}),
+                }
+            )
+
+        if hasattr(input_data, "current_page_dom"):
+            self.messages.append(
+                {
+                    "role": "user",
+                    "content": f"Current page DOM:\n{input_data.current_page_dom}",
+                }
             )
 
         # print(self.messages)
@@ -143,10 +154,7 @@ class BaseAgent:
                     "tool_call_id": tool_call.id,
                     "role": "tool",
                     "name": function_name,
-                    "content": str(
-                        str(function_response)
-                        + "\n \n ##RETURN OUTPUT WHEN DONE WITH CURRENT TASK##"
-                    ),
+                    "content": str(function_response),
                 }
             )
         except Exception as e:
