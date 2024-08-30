@@ -15,7 +15,11 @@ class State(str, Enum):
 class ActionType(str, Enum):
     CLICK = "CLICK"
     TYPE = "TYPE"
-    GOTO = "GOTO"
+    GOTO_URL = "GOTO_URL"
+    GET_DOM_TEXT_CONTENT = "GET_DOM_TEXT_CONTENT"
+    GET_DOM_INPUT_FILEDS = "GET_DOM_INPUT_FILEDS"
+    GET_DOM_ALL_CONTENTS = "GET_DOM_ALL_CONTENTS"
+    GET_CURRENT_URL = "GET_CURRENT_URL"
 
 
 class ClickAction(BaseModel):
@@ -30,11 +34,35 @@ class TypeAction(BaseModel):
 
 
 class GotoAction(BaseModel):
-    type: Literal[ActionType.GOTO]
+    type: Literal[ActionType.GOTO_URL]
     website: str
 
 
-Action = Union[ClickAction, TypeAction, GotoAction]
+class GetDomTextAction(BaseModel):
+    type: Literal[ActionType.GET_DOM_TEXT_CONTENT]
+
+
+class GetDomInputsAction(BaseModel):
+    type: Literal[ActionType.GET_DOM_INPUT_FILEDS]
+
+
+class GetDomAllAction(BaseModel):
+    type: Literal[ActionType.GET_DOM_ALL_CONTENTS]
+
+
+class GetCurrentUrlAction(BaseModel):
+    type: Literal[ActionType.GET_CURRENT_URL]
+
+
+Action = Union[
+    ClickAction,
+    TypeAction,
+    GotoAction,
+    GetDomTextAction,
+    GetDomInputsAction,
+    GetDomAllAction,
+    GetCurrentUrlAction,
+]
 
 
 class Task(BaseModel):
@@ -88,13 +116,14 @@ class AgentQInput(BaseModel):
     current_task: Optional[Task]
     completed_tasks: Optional[List[Task]]
     # task_for_review: Optional[Task]
+    current_page_dom: str
 
 
 class AgentQOutput(BaseModel):
-    plan: Optional[List[Task]]
     thought: str
     current_task_with_result: Optional[Task]
     current_task_actions: Optional[List[Action]]
+    plan: List[Task]
     next_task: Optional[Task]
     is_complete: bool
     final_response: Optional[str]

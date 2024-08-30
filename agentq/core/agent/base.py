@@ -143,7 +143,10 @@ class BaseAgent:
                     "tool_call_id": tool_call.id,
                     "role": "tool",
                     "name": function_name,
-                    "content": str(function_response),
+                    "content": str(
+                        str(function_response)
+                        + "\n \n ##RETURN OUTPUT WHEN DONE WITH CURRENT TASK##"
+                    ),
                 }
             )
         except Exception as e:

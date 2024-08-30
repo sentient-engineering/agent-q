@@ -19,6 +19,7 @@ from agentq.core.models.models import (
     State,
     Task,
 )
+from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_type
 from agentq.core.skills.get_screenshot import get_screenshot
 from agentq.core.skills.get_url import geturl
 from agentq.core.web_driver.playwright import PlaywrightManager
@@ -41,9 +42,6 @@ class Orchestrator:
         print("Starting orchestrator")
         await self.playwright_manager.async_initialize(eval_mode=self.eval_mode)
         print("Browser started and ready")
-
-        # Initialize AgentQ asynchronously
-        await self.state_to_agent_map[State.CONTINUE].initialize()
 
         if not self.eval_mode:
             await self._command_loop()
@@ -161,11 +159,15 @@ class Orchestrator:
 
         # screenshot = await get_screenshot()
 
+        # repesenting state with dom representation
+        dom = await get_dom_with_content_type(content_type="all_fields")
+
         input_data = AgentQInput(
             objective=self.memory.objective,
             current_task=self.memory.current_task,
             # task_for_review=self.memory.current_task,
             completed_tasks=self.memory.completed_tasks,
+            current_page_dom=str(dom),
         )
 
         output: AgentQOutput = await agent.run(input_data, session_id=self.session_id)

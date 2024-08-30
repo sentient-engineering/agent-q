@@ -18,7 +18,7 @@ from agentq.utils.logger import logger
 async def click(
     selector: Annotated[
         str,
-        "The properly formed query selector string to identify the element for the click action (e.g. [mmid='114']). When \"mmid\" attribute is present, use it for the query selector. mmid will always be a number",
+        "The properly formed query selector string to identify the element for the click action (e.g. [mmid='114']). When \"mmid\" attribute is present, use it for the query selector. selector mmid will always be a number",
     ],
     wait_before_execution: Annotated[
         float,
