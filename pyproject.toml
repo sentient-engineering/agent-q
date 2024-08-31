@@ -6,7 +6,7 @@ authors = ["nischalj10 <nischalj10@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.10,<4.0"
 litellm = "^1.42.9"
 pydantic = "^2.8.2"
 pytest-playwright = "^0.5.1"
@@ -25,8 +25,8 @@ agentops = "^0.3.10"
 termcolor = "^2.4.0"
 tabulate = "^0.9.0"
 nltk = "^3.9.1"
-langfuse = "^2.44.1"
 langsmith = "^0.1.104"
+instructor = "^1.4.0"
 
 
 [build-system]

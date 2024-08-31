@@ -4,11 +4,8 @@ from typing import Callable, List, Optional, Tuple, Type
 import litellm
 import openai
 from langsmith import traceable
+from litellm import Router
 
-# from langfuse.openai import openai
-from langsmith.wrappers import wrap_openai
-
-# from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
 
 from agentq.utils.function_utils import get_function_schema
@@ -45,8 +42,8 @@ class BaseAgent:
         self.output_format = output_format
 
         # Llm client
-        self.client = wrap_openai(openai.Client())
-        # self.client = openai.Client()
+        # self.client = wrap_openai(openai.Client())
+        self.client = openai.Client()
         # TODO: use lite llm here.
         # self.llm_config = {"model": "gpt-4o-2024-08-06"}
 
