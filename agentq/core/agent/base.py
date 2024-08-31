@@ -95,15 +95,20 @@ class BaseAgent:
             self.messages.append(
                 {
                     "role": "user",
-                    "content": input_data.model_dump_json(exclude={"current_page_dom"}),
+                    "content": input_data.model_dump_json(
+                        exclude={"current_page_dom", "current_page_url"}
+                    ),
                 }
             )
 
-        if hasattr(input_data, "current_page_dom"):
+        # input dom and current page url in a separate message so that the LLM can pay attention to completed tasks better. *based on personal vibe check*
+        if hasattr(input_data, "current_page_dom") and hasattr(
+            input_data, "current_page_url"
+        ):
             self.messages.append(
                 {
                     "role": "user",
-                    "content": f"Current page DOM:\n{input_data.current_page_dom}",
+                    "content": f"Current page URL:\n{input_data.current_page_url}\n\n Current page DOM:\n{input_data.current_page_dom}",
                 }
             )
 

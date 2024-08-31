@@ -10,17 +10,19 @@ class State(str, Enum):
     PLAN = "plan"
     BROWSE = "browse"
     COMPLETED = "completed"
-    CONTINUE = "continue"
+    AGENTQ_BASE = "agentq_base"
+    AGENTQ_ACTOR = "agentq_actor"
+    AGENTQ_CRITIC = "agentq_critic"
 
 
 class ActionType(str, Enum):
     CLICK = "CLICK"
     TYPE = "TYPE"
     GOTO_URL = "GOTO_URL"
-    GET_DOM_TEXT_CONTENT = "GET_DOM_TEXT_CONTENT"
-    GET_DOM_INPUT_FILEDS = "GET_DOM_INPUT_FILEDS"
-    GET_DOM_ALL_CONTENTS = "GET_DOM_ALL_CONTENTS"
-    GET_CURRENT_URL = "GET_CURRENT_URL"
+    # GET_DOM_TEXT_CONTENT = "GET_DOM_TEXT_CONTENT"
+    # GET_DOM_INPUT_FILEDS = "GET_DOM_INPUT_FILEDS"
+    # GET_DOM_ALL_CONTENTS = "GET_DOM_ALL_CONTENTS"
+    # GET_CURRENT_URL = "GET_CURRENT_URL"
 
 
 class ClickAction(BaseModel):
@@ -60,20 +62,20 @@ class GotoAction(BaseModel):
     )
 
 
-class GetDomTextAction(BaseModel):
-    type: Literal[ActionType.GET_DOM_TEXT_CONTENT]
+# class GetDomTextAction(BaseModel):
+#     type: Literal[ActionType.GET_DOM_TEXT_CONTENT]
 
 
-class GetDomInputsAction(BaseModel):
-    type: Literal[ActionType.GET_DOM_INPUT_FILEDS]
+# class GetDomInputsAction(BaseModel):
+#     type: Literal[ActionType.GET_DOM_INPUT_FILEDS]
 
 
-class GetDomAllAction(BaseModel):
-    type: Literal[ActionType.GET_DOM_ALL_CONTENTS]
+# class GetDomAllAction(BaseModel):
+#     type: Literal[ActionType.GET_DOM_ALL_CONTENTS]
 
 
-class GetCurrentUrlAction(BaseModel):
-    type: Literal[ActionType.GET_CURRENT_URL]
+# class GetCurrentUrlAction(BaseModel):
+#     type: Literal[ActionType.GET_CURRENT_URL]
 
 
 Action = Union[
@@ -94,14 +96,23 @@ class Task(BaseModel):
     result: Optional[str]
 
 
+class TaskWithActions(BaseModel):
+    id: int
+    description: str
+    actions_to_be_performed: Optional[List[Action]]
+    result: Optional[str]
+
+
 class Memory(BaseModel):
     objective: str
     current_state: State
-    plan: Optional[List[Task]]
+    plan: Optional[Union[List[Task], List[TaskWithActions]]]
     thought: str
-    completed_tasks: Optional[List[Task]]
-    current_task: Optional[List[Task]]
+    completed_tasks: Optional[Union[List[Task], List[TaskWithActions]]]
+    current_task: Optional[Union[Task, TaskWithActions]]
     final_response: Optional[str]
+    current_tasks_for_eval: Optional[List[TaskWithActions]]
+    sorted_tasks: Optional[List[TaskWithActions]]
 
     class Config:
         use_enum_values = True
@@ -110,7 +121,6 @@ class Memory(BaseModel):
 # Planner
 class PlannerInput(BaseModel):
     objective: str
-    plan: Optional[List[Task]]
     completed_tasks: Optional[List[Task]]
     task_for_review: Optional[Task]
 
@@ -135,14 +145,35 @@ class BrowserNavOutput(BaseModel):
 # AgentQ
 class AgentQInput(BaseModel):
     objective: str
-    completed_tasks: Optional[List[Task]]
+    completed_tasks: Optional[Union[List[Task], List[TaskWithActions]]]
+    current_page_url: str
     current_page_dom: str
 
 
-class AgentQOutput(BaseModel):
+class AgentQBaseOutput(BaseModel):
     thought: str
-    plan: List[Task]
+    plan: Union[List[Task], List[TaskWithActions]]
     next_task: Optional[Task]
     next_task_actions: Optional[List[Action]]
     is_complete: bool
     final_response: Optional[str]
+
+
+class AgentQActorOutput(BaseModel):
+    thought: str
+    proposed_tasks: Optional[List[TaskWithActions]]
+    is_complete: bool
+    final_response: Optional[str]
+
+
+class AgentQCriticInput(BaseModel):
+    objective: str
+    completed_tasks: Optional[List[TaskWithActions]]
+    tasks_for_eval: List[TaskWithActions]
+    current_page_url: str
+    current_page_dom: str
+
+
+class AgentQCriticOutput(BaseModel):
+    thought: str
+    top_task: TaskWithActions

@@ -3,22 +3,22 @@ from string import Template
 
 from agentq.core.agent.base import BaseAgent
 from agentq.core.memory import ltm
-from agentq.core.models.models import AgentQInput, AgentQBaseOutput
+from agentq.core.models.models import AgentQCriticInput, AgentQCriticOutput
 from agentq.core.prompts.prompts import LLM_PROMPTS
 from agentq.utils.logger import logger
 
 
-class AgentQ(BaseAgent):
+class AgentQCritic(BaseAgent):
     def __init__(self):
-        self.name = "agentq"
+        self.name = "critic"
         self.ltm = None
         self.ltm = self.__get_ltm()
         self.system_prompt = self.__modify_system_prompt(self.ltm)
         super().__init__(
             name=self.name,
             system_prompt=self.system_prompt,
-            input_format=AgentQInput,
-            output_format=AgentQBaseOutput,
+            input_format=AgentQCriticInput,
+            output_format=AgentQCriticOutput,
             keep_message_history=False,
         )
 
@@ -27,7 +27,7 @@ class AgentQ(BaseAgent):
         return ltm.get_user_ltm()
 
     def __modify_system_prompt(self, ltm):
-        system_prompt: str = LLM_PROMPTS["AGENTQ_BASE_PROMPT"]
+        system_prompt: str = LLM_PROMPTS["AGENTQ_CRITIC_PROMPT"]
 
         substitutions = {
             "basic_user_information": ltm if ltm is not None else "",

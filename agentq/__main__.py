@@ -1,6 +1,8 @@
 import asyncio
 
 from agentq.core.agent.agentq import AgentQ
+from agentq.core.agent.agentq_actor import AgentQActor
+from agentq.core.agent.agentq_critic import AgentQCritic
 from agentq.core.agent.browser_nav_agent import BrowserNavAgent
 from agentq.core.agent.planner_agent import PlannerAgent
 from agentq.core.models.models import State
@@ -12,7 +14,9 @@ async def main():
     state_to_agent_map = {
         State.PLAN: PlannerAgent(),
         State.BROWSE: BrowserNavAgent(),
-        State.CONTINUE: AgentQ(),
+        State.AGENTQ_BASE: AgentQ(),
+        State.AGENTQ_ACTOR: AgentQActor(),
+        State.AGENTQ_CRITIC: AgentQCritic(),
     }
 
     orchestrator = Orchestrator(state_to_agent_map=state_to_agent_map)

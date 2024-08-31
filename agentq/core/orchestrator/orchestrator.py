@@ -11,8 +11,11 @@ from agentq.core.agent.base import BaseAgent
 from agentq.core.models.models import (
     Action,
     ActionType,
+    AgentQActorOutput,
+    AgentQBaseOutput,
+    AgentQCriticInput,
+    AgentQCriticOutput,
     AgentQInput,
-    AgentQOutput,
     BrowserNavInput,
     BrowserNavOutput,
     Memory,
@@ -20,6 +23,7 @@ from agentq.core.models.models import (
     PlannerOutput,
     State,
     Task,
+    TaskWithActions,
 )
 from agentq.core.skills.click_using_selector import click
 from agentq.core.skills.enter_text_using_selector import EnterTextEntry, entertext
@@ -75,13 +79,18 @@ class Orchestrator:
             # Create initial memory
             self.memory = Memory(
                 objective=command,
-                # change to PLAN for using separate planner and browser agent
-                current_state=State.CONTINUE,
+                # change current state to
+                # 1. PLAN for using separate planner and browser agent
+                # 2. AGENTQ_BASE for using the base AgentQ
+                # 3. AGENTQ_ACTOR for using the AgentQ actor-critic model
+                current_state=State.AGENTQ_ACTOR,
                 plan=[],
                 thought="",
                 completed_tasks=[],
                 current_task=None,
                 final_response=None,
+                current_tasks_for_eval=None,
+                sorted_tasks=None,
             )
             print(f"Executing command {self.memory.objective}")
             while self.memory.current_state != State.COMPLETED:
@@ -112,8 +121,14 @@ class Orchestrator:
             await self._handle_planner()
         elif current_state == State.BROWSE:
             await self._handle_browser_navigation()
-        elif current_state == State.CONTINUE:
-            await self._handle_agnetq()
+        elif current_state == State.AGENTQ_BASE:
+            await self._handle_agnetq_base()
+        elif current_state == State.AGENTQ_ACTOR:
+            await self._handle_agnetq_actor()
+        elif current_state == State.AGENTQ_CRITIC:
+            await self._handle_agnetq_critic(
+                tasks_for_eval=self.memory.current_tasks_for_eval
+            )
         else:
             raise ValueError(f"Unhandled state: {current_state}")
 
@@ -125,9 +140,6 @@ class Orchestrator:
 
         input_data = PlannerInput(
             objective=self.memory.objective,
-            # not sending previous plan to the agent as it confuses it and the LLM does not genrate plan for current inital position
-            # plan=self.memory.plan,
-            plan=None,
             task_for_review=self.memory.current_task,
             completed_tasks=self.memory.completed_tasks,
         )
@@ -158,28 +170,185 @@ class Orchestrator:
 
         print(f"{Fore.MAGENTA}Executor has completed a task.")
 
-    async def _handle_agnetq(self):
-        agent = self.state_to_agent_map[State.CONTINUE]
+    async def _handle_agnetq_base(self):
+        agent = self.state_to_agent_map[State.AGENTQ_BASE]
         self._print_memory_and_agent(agent.name)
-
-        # screenshot = await get_screenshot()
 
         # repesenting state with dom representation
         dom = await get_dom_with_content_type(content_type="all_fields")
+        url = await geturl()
 
         input_data = AgentQInput(
             objective=self.memory.objective,
-            current_task=self.memory.current_task,
-            # task_for_review=self.memory.current_task,
             completed_tasks=self.memory.completed_tasks,
+            current_page_url=str(url),
             current_page_dom=str(dom),
         )
 
-        output: AgentQOutput = await agent.run(input_data, session_id=self.session_id)
+        output: AgentQBaseOutput = await agent.run(
+            input_data, session_id=self.session_id
+        )
 
-        await self._update_memory_from_agentq(output)
+        await self._update_memory_from_agentq_base(output)
 
-        print(f"{Fore.MAGENTA}Agent Q has updated the memory.")
+        print(f"{Fore.MAGENTA}Base Agent Q has updated the memory.")
+
+    async def _handle_agnetq_actor(self):
+        agent = self.state_to_agent_map[State.AGENTQ_ACTOR]
+        self._print_memory_and_agent(agent.name)
+
+        # repesenting state with dom representation
+        dom = await get_dom_with_content_type(content_type="all_fields")
+        url = await geturl()
+
+        input_data = AgentQInput(
+            objective=self.memory.objective,
+            completed_tasks=self.memory.completed_tasks,
+            current_page_url=str(url),
+            current_page_dom=str(dom),
+        )
+
+        output: AgentQActorOutput = await agent.run(
+            input_data, session_id=self.session_id
+        )
+
+        await self._update_memory_from_agentq_actor(output)
+
+        print(f"{Fore.MAGENTA}Base Agent Q has updated the memory.")
+
+    async def _handle_agnetq_critic(self, tasks_for_eval: List[TaskWithActions]):
+        agent = self.state_to_agent_map[State.AGENTQ_CRITIC]
+        self._print_memory_and_agent(agent.name)
+
+        sorted_tasks = []
+        remaining_tasks = tasks_for_eval.copy()
+
+        while len(remaining_tasks) > 1:
+            # Reassign consecutive IDs to remaining tasks
+            for i, task in enumerate(remaining_tasks, start=1):
+                task.id = i
+
+            dom = await get_dom_with_content_type(content_type="all_fields")
+            url = await geturl()
+
+            print(f"{Fore.GREEN}Critic agent has been called")
+
+            input_data = AgentQCriticInput(
+                objective=self.memory.objective,
+                completed_tasks=self.memory.completed_tasks,
+                tasks_for_eval=remaining_tasks,
+                current_page_url=str(url),
+                current_page_dom=str(dom),
+            )
+
+            output: AgentQCriticOutput = await agent.run(
+                input_data, session_id=self.session_id
+            )
+
+            top_task = output.top_task
+            sorted_tasks.append(top_task)
+            task_to_remove = next(
+                (task for task in remaining_tasks if task.id == top_task.id), None
+            )
+            if task_to_remove:
+                remaining_tasks.remove(task_to_remove)
+            else:
+                print(
+                    f"{Fore.RED}Warning: Top task not found in remaining tasks. Skipping. {top_task} && {remaining_tasks}"
+                )
+
+        # Add the last remaining task
+        if remaining_tasks:
+            sorted_tasks.append(remaining_tasks[0])
+
+        await self._update_memory_from_agentq_critic(sorted_tasks)
+
+        print(f"{Fore.MAGENTA}Critic Agent has sorted all the tasks.")
+
+    def _update_memory_from_planner(self, planner_output: PlannerOutput):
+        if planner_output.is_complete:
+            self.memory.current_state = State.COMPLETED
+            self.memory.final_response = planner_output.final_response
+        elif planner_output.next_task:
+            self.memory.current_state = State.BROWSE
+            self.memory.plan = planner_output.plan
+            self.memory.thought = planner_output.thought
+            next_task_id = len(self.memory.completed_tasks) + 1
+            self.memory.current_task = Task(
+                id=next_task_id,
+                description=planner_output.next_task.description,
+                url=None,
+                result=None,
+            )
+        else:
+            raise ValueError("Planner did not provide next task or completion status")
+
+    def _update_memory_from_browser_nav(self, browser_nav_output: BrowserNavOutput):
+        self.memory.completed_tasks.append(browser_nav_output.completed_task)
+        self.memory.current_task = None
+        self.memory.current_state = State.PLAN
+
+    async def _update_memory_from_agentq_base(self, agentq_output: AgentQBaseOutput):
+        if agentq_output.is_complete:
+            self.memory.current_state = State.COMPLETED
+            self.memory.final_response = agentq_output.final_response
+        elif agentq_output.next_task:
+            self.memory.current_state = State.AGENTQ_BASE
+            if agentq_output.next_task_actions:
+                action_results = await self.handle_agentq_actions(
+                    agentq_output.next_task_actions
+                )
+                print("Action results:", action_results)
+                flattened_results = "; ".join(action_results)
+                agentq_output.next_task.result = flattened_results
+
+            self.memory.completed_tasks.append(agentq_output.next_task)
+            self.memory.plan = agentq_output.plan
+            self.memory.thought = agentq_output.thought
+            current_task_id = len(self.memory.completed_tasks) + 1
+            self.memory.current_task = Task(
+                id=current_task_id,
+                description=agentq_output.next_task.description,
+                url=None,
+                result=None,
+            )
+        else:
+            raise ValueError("Planner did not provide next task or completion status")
+
+    async def _update_memory_from_agentq_actor(self, actor_output: AgentQActorOutput):
+        if actor_output.is_complete:
+            self.memory.current_state = State.COMPLETED
+            self.memory.final_response = actor_output.final_response
+        elif actor_output.proposed_tasks:
+            self.memory.current_state = State.AGENTQ_CRITIC
+            self.memory.current_tasks_for_eval = actor_output.proposed_tasks
+        else:
+            raise ValueError("Planner did not provide next task or completion status")
+
+    async def _update_memory_from_agentq_critic(
+        self, sorted_tasks: List[TaskWithActions]
+    ):
+        self.memory.sorted_tasks = sorted_tasks
+
+        # Execute the top task
+        top_task = sorted_tasks[0]
+        action_results = await self.handle_agentq_actions(
+            top_task.actions_to_be_performed
+        )
+        print("Action results:", action_results)
+        flattened_results = "; ".join(action_results)
+
+        top_task.id = len(self.memory.completed_tasks) + 1
+        top_task.result = flattened_results
+
+        self.memory.completed_tasks.append(top_task)
+
+        # Make proposed and sorted tasks empty
+        self.memory.current_tasks_for_eval = None
+        self.memory.sorted_tasks = None
+
+        # Set the next state
+        self.memory.current_state = State.AGENTQ_ACTOR
 
     async def handle_agentq_actions(self, actions: List[Action]):
         results = []
@@ -205,61 +374,6 @@ class Orchestrator:
             results.append(result)
 
         return results
-
-    def _update_memory_from_planner(self, planner_output: PlannerOutput):
-        if planner_output.is_complete:
-            self.memory.current_state = State.COMPLETED
-            self.memory.final_response = planner_output.final_response
-        elif planner_output.next_task:
-            self.memory.current_state = State.BROWSE
-            self.memory.plan = planner_output.plan
-            self.memory.thought = planner_output.thought
-            next_task_id = len(self.memory.completed_tasks) + 1
-            self.memory.current_task = Task(
-                id=next_task_id,
-                description=planner_output.next_task.description,
-                url=None,
-                result=None,
-            )
-        else:
-            raise ValueError("Planner did not provide next task or completion status")
-
-    def _update_memory_from_browser_nav(self, browser_nav_output: BrowserNavOutput):
-        self.memory.completed_tasks.append(browser_nav_output.completed_task)
-        self.memory.current_task = None
-        self.memory.current_state = State.PLAN
-
-    async def _update_memory_from_agentq(self, agentq_output: AgentQOutput):
-        if agentq_output.is_complete:
-            self.memory.current_state = State.COMPLETED
-            self.memory.final_response = agentq_output.final_response
-        elif agentq_output.next_task:
-            self.memory.current_state = State.CONTINUE
-            # current_task_with_result can also be a string "no current task"
-            # if isinstance(agentq_output.current_task_with_result, Task):
-            #     self.memory.completed_tasks.append(
-            #         agentq_output.current_task_with_result
-            #     )
-            if agentq_output.next_task_actions:
-                action_results = await self.handle_agentq_actions(
-                    agentq_output.next_task_actions
-                )
-                print("Action results:", action_results)
-                flattened_results = "; ".join(action_results)
-                agentq_output.next_task.result = flattened_results
-
-            self.memory.completed_tasks.append(agentq_output.next_task)
-            self.memory.plan = agentq_output.plan
-            self.memory.thought = agentq_output.thought
-            current_task_id = len(self.memory.completed_tasks) + 1
-            self.memory.current_task = Task(
-                id=current_task_id,
-                description=agentq_output.next_task.description,
-                url=None,
-                result=None,
-            )
-        else:
-            raise ValueError("Planner did not provide next task or completion status")
 
     async def shutdown(self):
         print("Shutting down orchestrator!")
