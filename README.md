@@ -1,6 +1,15 @@
 # agentq - advanced reasoning and learning for autonomous AI agents
 
-agentq implementation code
+agentq utilises various kinds of agentic architectures to complete a task on the web reliably.
+it has 
+```
+1. a planner <> navigator multi-agent architecutre
+2. a solo planner-actor agent
+3. an actor <> critic multi-agent architecture
+4. actor <> critic architecute + monte carlo tree search based reinforcement learning + dpo finetuning 
+```
+
+this repo contains an oss implementation of the research paper [agent q](https://arxiv.org/abs/2408.07199) - thus the name.
 
 ### setup
 
