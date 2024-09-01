@@ -3,7 +3,7 @@ from string import Template
 
 from agentq.core.agent.base import BaseAgent
 from agentq.core.memory import ltm
-from agentq.core.models.models import AgentQInput, AgentQActorOutput
+from agentq.core.models.models import AgentQActorInput, AgentQActorOutput
 from agentq.core.prompts.prompts import LLM_PROMPTS
 from agentq.utils.logger import logger
 
@@ -17,7 +17,7 @@ class AgentQActor(BaseAgent):
         super().__init__(
             name=self.name,
             system_prompt=self.system_prompt,
-            input_format=AgentQInput,
+            input_format=AgentQActorInput,
             output_format=AgentQActorOutput,
             keep_message_history=False,
         )

@@ -11,11 +11,12 @@ from agentq.core.agent.base import BaseAgent
 from agentq.core.models.models import (
     Action,
     ActionType,
+    AgentQActorInput,
     AgentQActorOutput,
+    AgentQBaseInput,
     AgentQBaseOutput,
     AgentQCriticInput,
     AgentQCriticOutput,
-    AgentQInput,
     BrowserNavInput,
     BrowserNavOutput,
     Memory,
@@ -83,7 +84,7 @@ class Orchestrator:
                 # 1. PLAN for using separate planner and browser agent
                 # 2. AGENTQ_BASE for using the base AgentQ
                 # 3. AGENTQ_ACTOR for using the AgentQ actor-critic model
-                current_state=State.AGENTQ_ACTOR,
+                current_state=State.AGENTQ_BASE,
                 plan=[],
                 thought="",
                 completed_tasks=[],
@@ -178,7 +179,7 @@ class Orchestrator:
         dom = await get_dom_with_content_type(content_type="all_fields")
         url = await geturl()
 
-        input_data = AgentQInput(
+        input_data = AgentQBaseInput(
             objective=self.memory.objective,
             completed_tasks=self.memory.completed_tasks,
             current_page_url=str(url),
@@ -201,7 +202,7 @@ class Orchestrator:
         dom = await get_dom_with_content_type(content_type="all_fields")
         url = await geturl()
 
-        input_data = AgentQInput(
+        input_data = AgentQActorInput(
             objective=self.memory.objective,
             completed_tasks=self.memory.completed_tasks,
             current_page_url=str(url),

@@ -143,20 +143,27 @@ class BrowserNavOutput(BaseModel):
 
 
 # AgentQ
-class AgentQInput(BaseModel):
+class AgentQBaseInput(BaseModel):
     objective: str
-    completed_tasks: Optional[Union[List[Task], List[TaskWithActions]]]
+    completed_tasks: Optional[List[Task]]
     current_page_url: str
     current_page_dom: str
 
 
 class AgentQBaseOutput(BaseModel):
     thought: str
-    plan: Union[List[Task], List[TaskWithActions]]
+    plan: List[Task]
     next_task: Optional[Task]
     next_task_actions: Optional[List[Action]]
     is_complete: bool
     final_response: Optional[str]
+
+
+class AgentQActorInput(BaseModel):
+    objective: str
+    completed_tasks: Optional[List[TaskWithActions]]
+    current_page_url: str
+    current_page_dom: str
 
 
 class AgentQActorOutput(BaseModel):

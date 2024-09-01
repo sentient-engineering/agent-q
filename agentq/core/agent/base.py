@@ -4,7 +4,7 @@ from typing import Callable, List, Optional, Tuple, Type
 import litellm
 import openai
 from langsmith import traceable
-from litellm import Router
+# from litellm import Router
 
 from pydantic import BaseModel
 
@@ -13,7 +13,6 @@ from agentq.utils.logger import logger
 
 # Set global configurations for litellm
 litellm.logging = False
-litellm.success_callback = ["langfuse"]
 
 
 class BaseAgent:
