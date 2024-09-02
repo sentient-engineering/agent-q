@@ -181,13 +181,14 @@ class AgentQBaseOutput(BaseModel):
     final_response: Optional[str]
 
 
+# Actor
 class AgentQActorInput(BaseModel):
     objective: str
     completed_tasks: Optional[List[TaskWithActions]]
     current_page_url: str
     current_page_dom: str
 
-
+ 
 class AgentQActorOutput(BaseModel):
     thought: str
     proposed_tasks: Optional[List[TaskWithActions]]
