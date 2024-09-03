@@ -58,6 +58,8 @@ class MCTSNode(Generic[State, Action, Example]):
         self.parent = parent
         self.children: "Optional[list[MCTSNode]]" = None
         self.calc_q = calc_q
+        self.N = 0  # Visit count
+        self._Q = 0  # Reward
         if parent is None:
             self.depth = 0
         else:
@@ -67,12 +69,22 @@ class MCTSNode(Generic[State, Action, Example]):
         return f"MCTSNode(id={self.id}, state={self.state}, action={self.action}, reward={self.reward}, is_terminal={self.is_terminal})"
 
     # noinspection PyPep8Naming
+    # @property
+    # def Q(self) -> float:
+    #     if self.state is None:
+    #         return self.fast_reward
+    #     else:
+    #         return self.calc_q(self.cum_rewards)
+
     @property
     def Q(self) -> float:
-        if self.state is None:
-            return self.fast_reward
-        else:
-            return self.calc_q(self.cum_rewards)
+        if self.N == 0:
+            return 0
+        return self._Q  # Getter
+
+    @Q.setter
+    def Q(self, value: float):
+        self._Q = value  # Setter
 
 
 class MCTSResult(NamedTuple):
@@ -211,6 +223,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
         path = self._select(node)
         print("Selected Node")
         print(path[-1].state.url)
+        # print(path[-1])
         if not self._is_terminal_with_depth_limit(path[-1]):
             print("inside terminal")
             await self._expand(path[-1])
@@ -246,17 +259,29 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
                 return path
             node = self._uct_select(node)
 
+    # def _uct(self, node: MCTSNode) -> float:
+    #     return node.Q + self.w_exp * np.sqrt(
+    #         np.log(len(node.parent.cum_rewards)) / max(1, len(node.cum_rewards))
+    #     )
+
     def _uct(self, node: MCTSNode) -> float:
-        return node.Q + self.w_exp * np.sqrt(
-            np.log(len(node.parent.cum_rewards)) / max(1, len(node.cum_rewards))
-        )
+        return node.Q + self.w_exp * math.sqrt(math.log(node.parent.N) / (1 + node.N))
+
+    # def _uct_select(self, node: MCTSNode) -> MCTSNode:
+    #     if self.uct_with_fast_reward or all(x.state is not None for x in node.children):
+    #         return max(node.children, key=self._uct)
+    #     else:
+    #         unvisited_children = filter(lambda x: x.state is None, node.children)
+    #         return max(unvisited_children, key=lambda x: x.fast_reward)
 
     def _uct_select(self, node: MCTSNode) -> MCTSNode:
-        if self.uct_with_fast_reward or all(x.state is not None for x in node.children):
-            return max(node.children, key=self._uct)
-        else:
-            unvisited_children = filter(lambda x: x.state is None, node.children)
-            return max(unvisited_children, key=lambda x: x.fast_reward)
+        # First, check for unvisited nodes
+        for child in node.children:
+            if child.N == 0:
+                return child
+
+        # If all nodes have been visited, use the UCB1 formula
+        return max(node.children, key=self._uct)
 
     async def _expand(self, node: MCTSNode):
         if node.state is None:
@@ -277,6 +302,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
         children = []
         print("inside expand")
         print(node.state.url)
+        # print(node)
         actions = await self.search_config.get_actions(node.state)
         print("Inside actions")
         print(actions)
@@ -305,18 +331,26 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             if self._is_terminal_with_depth_limit(node) or len(node.children) == 0:
                 return
             fast_rewards = [child.fast_reward for child in node.children]
+            print("rewards")
+            print(fast_rewards)
             node = node.children[self.simulate_choice(fast_rewards)]
             path.append(node)
 
+    # def _back_propagate(self, path: list[MCTSNode]):
+    #     rewards = []
+    #     cum_reward = -math.inf
+    #     for node in reversed(path):
+    #         rewards.append(node.reward)
+    #         cum_reward = self.cum_reward(rewards[::-1])
+    #         node.cum_rewards.append(cum_reward)
+    #     return cum_reward
+
     def _back_propagate(self, path: list[MCTSNode]):
-        rewards = []
-        cum_reward = -math.inf
+        reward = path[-1].reward
         for node in reversed(path):
-            rewards.append(node.reward)
-            cum_reward = self.cum_reward(rewards[::-1])
-            node.cum_rewards.append(cum_reward)
-            cum_reward = 1 - cum_reward
-        return cum_reward
+            node.Q = (node.Q * node.N + reward) / (node.N + 1)
+            node.N += 1
+        return path[0].Q  # Return the root node's updated Q-value
 
     def _dfs_max_reward(self, path: list[MCTSNode]) -> tuple[float, list[MCTSNode]]:
         cur = path[-1]
@@ -349,6 +383,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
         ):
             print(f"-----iter: {iter}----")
             print(self.root.state.url)
+            # print(self.root)
             path = await self.iterate(self.root)
             if self.output_trace_in_each_iter:
                 self.trace_in_each_iter.append(deepcopy(path))

@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, NamedTuple, Tuple
 
 import numpy as np
@@ -21,14 +22,16 @@ class GridWorldModel(WorldModel[GridState, GridAction, None]):
         self.height = len(grid)
         self.width = len(grid[0])
 
-    def init_state(self) -> GridState:
+    async def init_state(self) -> GridState:
         for i in range(self.height):
             for j in range(self.width):
                 if self.grid[i][j] == 2:
                     return GridState((i, j), self.grid)
         raise ValueError("No initial position (2) found in the grid")
 
-    def step(self, state: GridState, action: GridAction) -> Tuple[GridState, dict]:
+    async def step(
+        self, state: GridState, action: GridAction
+    ) -> Tuple[GridState, dict]:
         x, y = state.position
         if action.direction == "up":
             new_x, new_y = x - 1, y
@@ -54,7 +57,7 @@ class GridWorldModel(WorldModel[GridState, GridAction, None]):
         new_state = GridState(new_position, state.grid)
         return new_state, {}
 
-    def is_terminal(self, state: GridState) -> bool:
+    async def is_terminal(self, state: GridState) -> bool:
         # x, y = state.position
         # return state.grid[x][y] == 3
         return is_terminal(state)
@@ -64,7 +67,7 @@ class GridSearchConfig(SearchConfig[GridState, GridAction, None]):
     def __init__(self):
         super().__init__()
 
-    def get_actions(self, state: GridState) -> List[GridAction]:
+    async def get_actions(self, state: GridState) -> List[GridAction]:
         return [
             GridAction("up"),
             GridAction("down"),
@@ -72,11 +75,13 @@ class GridSearchConfig(SearchConfig[GridState, GridAction, None]):
             GridAction("right"),
         ]
 
-    def reward(
+    async def reward(
         self, state: GridState, action: GridAction, **kwargs
     ) -> Tuple[float, dict]:
         if is_terminal(state):
             return 1.0, {}  # good move
+        # else:
+        #     return 0.0, {}
         else:
             return -0.01, {}  # small penalty for each step to encourage shorter path
 
@@ -100,16 +105,16 @@ class MCTSGridWrapper(Reasoner[GridState, GridAction, None]):
             n_iters=n_iterations,
             w_exp=exploration_weight,
             cum_reward=sum,
-            calc_q=np.mean,
+            #calc_q=np.mean,
             simulate_strategy="random",
             output_strategy="max_reward",
             depth_limit=len(grid) * len(grid[0]),
         )
         super().__init__(world_model, search_config, search_algo)
 
-    def __call__(self) -> MCTSResult:
+    async def __call__(self) -> MCTSResult:
         # return self.search_algo(self.world_model, self.search_config)
-        return super().__call__(example=None)
+        return await super().__call__(example=None)
 
     @staticmethod
     def print_path(result: MCTSResult):
@@ -126,7 +131,7 @@ class MCTSGridWrapper(Reasoner[GridState, GridAction, None]):
         print(f"Cumulative reward: {result.cum_reward}")
 
 
-if __name__ == "__main__":
+async def main():
     # 0: Empty cell
     # 1: Blocked cell
     # 2: Initial position
@@ -134,12 +139,18 @@ if __name__ == "__main__":
     grid = [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 1, 0],
-        [0, 0, 0, 1, 0],
-        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
         [0, 0, 3, 1, 2],
     ]
 
     mcts_wrapper = MCTSGridWrapper(grid, n_iterations=10000, exploration_weight=1.0)
-    result = mcts_wrapper()
+    result = await mcts_wrapper()
 
     MCTSGridWrapper.print_path(result)
+
+
+if __name__ == "__main__":
+    print("[DEBUG] Script started")
+    asyncio.run(main())
+    print("[DEBUG] Script finished")
