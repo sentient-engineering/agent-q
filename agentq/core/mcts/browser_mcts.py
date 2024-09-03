@@ -33,6 +33,7 @@ class BrowserState(NamedTuple):
     dom: str
     url: str
     objective: str
+    completed_task: List[str]
 
 
 class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
@@ -53,7 +54,8 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
     ) -> Tuple[BrowserState, dict]:
         print(f"[DEBUG] Executing step with action: {action}")
         new_dom, new_url = await self.execute_browser_action(action)
-        new_state = BrowserState(dom=new_dom, url=new_url, objective=state.objective)
+        new_completed_tasks = state.completed_task + [str(action)]
+        new_state = BrowserState(dom=new_dom, url=new_url, objective=state.objective, completed_task=new_completed_tasks)
         print(f"[DEBUG] New state after step - URL: {new_url}")
         return new_state, {}
 
@@ -104,7 +106,7 @@ class BrowserMCTSSearchConfig(SearchConfig[BrowserState, BrowserAction, str]):
         print("[DEBUG] Getting actions for current state")
         actor_input: AgentQInput = AgentQInput(
             objective=state.objective,
-            completed_tasks=[],
+            completed_tasks=state.completed_task,
             current_page_dom=state.dom,
             current_page_url=state.url,
         )
