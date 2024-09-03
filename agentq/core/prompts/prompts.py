@@ -175,7 +175,7 @@ Actions available and their description -
 1. CLICK[MMID, WAIT_BEFORE_EXECUTION] - Executes a click action on the element matching the given mmid attribute value. MMID is always a number. Returns Success if click was successful or appropriate error message if the element could not be clicked.
 2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
 3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
-
+4. ENTER_TEXT_AND_CLICK[TEXT_ELEMENT_MMID, TEXT_TO_ENTER, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION] - This action enters text into a specified element and clicks another element, both identified by their mmid. Ideal for seamless actions like submitting search queries, this integrated approach ensures superior performance over separate text entry and click commands. Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered. Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
 
  ## Planning Guidelines: ##
  1. If you know the direct URL, use it directly instead of searching for it (e.g. go to www.espn.com). Optimise the plan to avoid unnecessary steps.
@@ -281,7 +281,8 @@ Output:
  1. CLICK[MMID, WAIT_BEFORE_EXECUTION] - Executes a click action on the element matching the given mmid attribute value. MMID is always a number. Returns Success if click was successful or appropriate error message if the element could not be clicked.
  2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
  3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
- 
+ 4. ENTER_TEXT_AND_CLICK[TEXT_ELEMENT_MMID, TEXT_TO_ENTER, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION] - This action enters text into a specified element and clicks another element, both identified by their mmid. Ideal for seamless actions like submitting search queries, this integrated approach ensures superior performance over separate text entry and click commands. Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered. Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
+
  ## Planning Guidelines: ##
  1. If you know the direct URL, use it directly instead of searching for it (e.g. go to www.espn.com). Optimise the plan to avoid unnecessary steps.
  2. Do not combine multiple tasks into one. A task should be strictly as simple as interacting with a single element or navigating to a page. If you need to interact with multiple elements or perform multiple actions, you will break it down into multiple tasks.
@@ -388,7 +389,7 @@ Output:
  1. CLICK[MMID, WAIT_BEFORE_EXECUTION] - Executes a click action on the element matching the given mmid attribute value. MMID is always a number. Returns Success if click was successful or appropriate error message if the element could not be clicked.
  2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
  3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
-
+ 4. ENTER_TEXT_AND_CLICK[TEXT_ELEMENT_MMID, TEXT_TO_ENTER, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION] - This action enters text into a specified element and clicks another element, both identified by their mmid. Ideal for seamless actions like submitting search queries, this integrated approach ensures superior performance over separate text entry and click commands. Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered. Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
 
  ## Critic Guidelines: ##
 1. The Actor AI model was given some instruction to follow on how it should come up with the possible tasks. You job is to look at those instruction and see if the planner followed them.

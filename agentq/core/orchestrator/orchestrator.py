@@ -27,6 +27,7 @@ from agentq.core.models.models import (
     TaskWithActions,
 )
 from agentq.core.skills.click_using_selector import click
+from agentq.core.skills.enter_text_and_click import enter_text_and_click
 from agentq.core.skills.enter_text_using_selector import EnterTextEntry, entertext
 from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_type
 from agentq.core.skills.get_screenshot import get_screenshot
@@ -175,24 +176,51 @@ class Orchestrator:
         agent = self.state_to_agent_map[State.AGENTQ_BASE]
         self._print_memory_and_agent(agent.name)
 
-        # repesenting state with dom representation
-        dom = await get_dom_with_content_type(content_type="all_fields")
-        url = await geturl()
+        max_retries = 3
+        retry_delay = 2
 
-        input_data = AgentQBaseInput(
-            objective=self.memory.objective,
-            completed_tasks=self.memory.completed_tasks,
-            current_page_url=str(url),
-            current_page_dom=str(dom),
-        )
+        for attempt in range(max_retries):
+            try:
+                # Get the current page
+                page = await self.playwright_manager.get_current_page()
 
-        output: AgentQBaseOutput = await agent.run(
-            input_data, session_id=self.session_id
-        )
+                # Wait for the page to load
+                await page.wait_for_load_state("networkidle", timeout=10000)
 
-        await self._update_memory_from_agentq_base(output)
+                # Get DOM and URL
+                dom = await get_dom_with_content_type(content_type="all_fields")
+                url = await geturl()
 
-        print(f"{Fore.MAGENTA}Base Agent Q has updated the memory.")
+                input_data = AgentQBaseInput(
+                    objective=self.memory.objective,
+                    completed_tasks=self.memory.completed_tasks,
+                    current_page_url=str(url),
+                    current_page_dom=str(dom),
+                )
+
+                output: AgentQBaseOutput = await agent.run(
+                    input_data, session_id=self.session_id
+                )
+
+                await self._update_memory_from_agentq_base(output)
+
+                print(f"{Fore.MAGENTA}Base Agent Q has updated the memory.")
+                break  # If successful, break out of the retry loop
+
+            except Exception as e:
+                print(f"{Fore.YELLOW}An error occurred: {e}")
+                if attempt < max_retries - 1:
+                    print(f"{Fore.YELLOW}Retrying in {retry_delay} seconds...")
+                    await asyncio.sleep(retry_delay)
+                else:
+                    print(
+                        f"{Fore.RED}Max retries reached. Unable to complete the action."
+                    )
+                    raise
+
+        # After the loop, check if we've successfully completed the operation
+        if attempt == max_retries - 1:
+            raise Exception("Failed to handle AgentQ Base after maximum retries")
 
     async def _handle_agnetq_actor(self):
         agent = self.state_to_agent_map[State.AGENTQ_ACTOR]
@@ -354,21 +382,39 @@ class Orchestrator:
     async def handle_agentq_actions(self, actions: List[Action]):
         results = []
         for action in actions:
+            page = await self.playwright_manager.get_current_page()
             if action.type == ActionType.GOTO_URL:
                 result = await openurl(url=action.website, timeout=action.timeout or 0)
+                await page.wait_for_load_state("networkidle", timeout=10000)
                 print("Action - GOTO")
             elif action.type == ActionType.TYPE:
+                await page.wait_for_selector(f"[mmid='{action.mmid}']", timeout=5000)
                 entry = EnterTextEntry(
                     query_selector=f"[mmid='{action.mmid}']", text=action.content
                 )
                 result = await entertext(entry)
                 print("Action - TYPE")
             elif action.type == ActionType.CLICK:
+                await page.wait_for_selector(f"[mmid='{action.mmid}']", timeout=5000)
                 result = await click(
                     selector=f"[mmid='{action.mmid}']",
                     wait_before_execution=action.wait_before_execution or 0,
                 )
                 print("Action - CLICK")
+            elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
+                await page.wait_for_selector(
+                    f"[mmid='{action.text_element_mmid}']", timeout=5000
+                )
+                await page.wait_for_selector(
+                    f"[mmid='{action.click_element_mmid}']", timeout=5000
+                )
+                result = await enter_text_and_click(
+                    text_selector=f"[mmid='{action.text_element_mmid}']",
+                    text_to_enter=action.text_to_enter,
+                    click_selector=f"[mmid='{action.click_element_mmid}']",
+                    wait_before_click_execution=action.wait_before_click_execution or 0,
+                )
+                print("Action - ENTER TEXT AND CLICK")
             else:
                 result = f"Unsupported action type: {action.type}"
 
