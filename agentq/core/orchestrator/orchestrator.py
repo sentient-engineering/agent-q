@@ -128,9 +128,7 @@ class Orchestrator:
         elif current_state == State.AGENTQ_ACTOR:
             await self._handle_agnetq_actor()
         elif current_state == State.AGENTQ_CRITIC:
-            await self._handle_agnetq_critic(
-                tasks_for_eval=self.memory.current_tasks_for_eval
-            )
+            await self._handle_agentq_critic()
         else:
             raise ValueError(f"Unhandled state: {current_state}")
 
@@ -245,10 +243,11 @@ class Orchestrator:
 
         print(f"{Fore.MAGENTA}Base Agent Q has updated the memory.")
 
-    async def _handle_agnetq_critic(self, tasks_for_eval: List[TaskWithActions]):
+    async def _handle_agentq_critic(self):
         agent = self.state_to_agent_map[State.AGENTQ_CRITIC]
         self._print_memory_and_agent(agent.name)
 
+        tasks_for_eval = self.memory.current_tasks_for_eval
         sorted_tasks = []
         remaining_tasks = tasks_for_eval.copy()
 

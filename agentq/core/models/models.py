@@ -188,7 +188,7 @@ class AgentQActorInput(BaseModel):
     current_page_url: str
     current_page_dom: str
 
- 
+
 class AgentQActorOutput(BaseModel):
     thought: str
     proposed_tasks: Optional[List[TaskWithActions]]
@@ -196,6 +196,7 @@ class AgentQActorOutput(BaseModel):
     final_response: Optional[str]
 
 
+# Critic
 class AgentQCriticInput(BaseModel):
     objective: str
     completed_tasks: Optional[List[TaskWithActions]]
@@ -207,6 +208,15 @@ class AgentQCriticInput(BaseModel):
 class AgentQCriticOutput(BaseModel):
     thought: str
     top_task: TaskWithActions
+
+
+# Vision
+class VisionInput(BaseModel):
+    objective: str
+
+
+class VisionOutput(BaseModel):
+    is_terminal: bool
 
 
 class EvalAgentInput(BaseModel):

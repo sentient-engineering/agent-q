@@ -13,10 +13,12 @@ class WorldModel(ABC, Generic[State, Action, Example]):
         self.prompt = None
 
     @abstractmethod
-    def init_state(self) -> State: ...
+    async def init_state(self) -> State: ...
 
     @abstractmethod
-    def step(self, state: State, action: Action) -> Union[State, Tuple[State, dict]]:
+    async def step(
+        self, state: State, action: Action
+    ) -> Union[State, Tuple[State, dict]]:
         """Returns the next state and optionally an auxiliary data dict
 
         :param state: The current state
@@ -26,7 +28,7 @@ class WorldModel(ABC, Generic[State, Action, Example]):
         ...
 
     @abstractmethod
-    def is_terminal(self, state: State) -> bool: ...
+    async def is_terminal(self, state: State) -> bool: ...
 
     def update_example(self, example: Example, prompt=None) -> None:
         if prompt is not None:
@@ -42,13 +44,13 @@ class DefaultWorldModel(WorldModel):
         super().__init__()
         self.base_model = base_model
 
-    def init_state(self):
+    async def init_state(self):
         return []
 
-    def step(self, state, action):
+    async def step(self, state, action):
         return state + [action], {}
 
-    def is_terminal(self, state):
+    async def is_terminal(self, state):
         # By default the state is never terminal
         return False
 
@@ -59,13 +61,13 @@ class SearchConfig(ABC, Generic[State, Action, Example]):
         self.prompt = None
 
     @abstractmethod
-    def get_actions(self, state: State) -> list[Action]: ...
+    async def get_actions(self, state: State) -> list[Action]: ...
 
     def fast_reward(self, state: State, action: Action) -> tuple[float, dict]:
         return 0, {}
 
     @abstractmethod
-    def reward(self, state, action, **kwargs) -> tuple[float, dict]: ...
+    async def reward(self, state, action, **kwargs) -> tuple[float, dict]: ...
 
     def update_example(self, example: Example, prompt=None) -> None:
         if prompt is not None:
@@ -83,7 +85,7 @@ class SearchAlgorithm(ABC):
     def __init__(self, **kwargs): ...
 
     @abstractmethod
-    def __call__(
+    async def __call__(
         self, world_model: WorldModel, search_config: SearchConfig, **kwargs
     ) -> AlgorithmOutput: ...
 
@@ -99,9 +101,9 @@ class Reasoner(ABC, Generic[State, Action, Example]):
         self.search_config = search_config
         self.search_algo = search_algo
 
-    def __call__(
+    async def __call__(
         self, example: Example, prompt=None, **kwargs
     ) -> AlgorithmOutput[State]:
         self.world_model.update_example(example, prompt=prompt)
         self.search_config.update_example(example, prompt=prompt)
-        return self.search_algo(self.world_model, self.search_config, **kwargs)
+        return await self.search_algo(self.world_model, self.search_config, **kwargs)
