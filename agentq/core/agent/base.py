@@ -1,18 +1,16 @@
 import json
 from typing import Callable, List, Optional, Tuple, Type
 
+import instructor
+import instructor.patch
 import litellm
 import openai
+from instructor import Mode
 from langsmith import traceable
-# from litellm import Router
-
 from pydantic import BaseModel
 
 from agentq.utils.function_utils import get_function_schema
 from agentq.utils.logger import logger
-
-# Set global configurations for litellm
-litellm.logging = False
 
 
 class BaseAgent:
@@ -40,18 +38,28 @@ class BaseAgent:
         self.input_format = input_format
         self.output_format = output_format
 
+        # Set global configurations for litellm
+        litellm.logging = True
+        litellm.set_verbose = True
+
         # Llm client
-        # self.client = wrap_openai(openai.Client())
+        # self.client = instructor.from_litellm(
+        #     completion,
+        #     mode=Mode.JSON,
+        # )
         self.client = openai.Client()
-        # TODO: use lite llm here.
-        # self.llm_config = {"model": "gpt-4o-2024-08-06"}
+        # self.client = openai.OpenAI(
+        #     base_url="https://api.together.xyz/v1",
+        #     api_key=os.environ["TOGETHER_API_KEY"],
+        # )
+
+        self.client = instructor.from_openai(self.client, mode=Mode.JSON)
 
         # Tools
         self.tools_list = []
         self.executable_functions_list = {}
         if tools:
             self._initialize_tools(tools)
-            # self.llm_config.update({"tools": self.tools_list, "tool_choice": "auto"})
 
     def _initialize_tools(self, tools: List[Tuple[Callable, str]]):
         for func, func_desc in tools:
@@ -65,10 +73,6 @@ class BaseAgent:
     async def run(
         self, input_data: BaseModel, screenshot: str = None, session_id: str = None
     ) -> BaseModel:
-        # langfuse_context.update_current_trace(
-        #     name=self.agnet_name,
-        #     session_id=session_id
-        # )
 
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
@@ -113,35 +117,53 @@ class BaseAgent:
         # TODO: add a max_turn here to prevent a inifinite fallout
         while True:
             # TODO:
-            # 1. replace this with litellm post structured json is supported.
-            # 2. exeception handling while calling the client
+            # 1. exeception handling while calling the client
+            # 2. remove the else block as JSON mode in instrutor won't allow us to pass in tools.
             if len(self.tools_list) == 0:
-                response = self.client.beta.chat.completions.parse(
+                response = self.client.chat.completions.create(
                     model="gpt-4o-2024-08-06",
+                    # model="groq/llama3-groq-70b-8192-tool-use-preview",
+                    # model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
                     messages=self.messages,
-                    response_format=self.output_format,
+                    response_model=self.output_format,
+                    max_retries=3,
+                    # logger_fn=logger,
                 )
             else:
                 # print(self.tools_list)
-                response = self.client.beta.chat.completions.parse(
+                response = self.client.chat.completions.create(
                     model="gpt-4o-2024-08-06",
+                    # model="groq/llama3-groq-70b-8192-tool-use-preview",
+                    # model="together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
                     messages=self.messages,
-                    response_format=self.output_format,
+                    response_model=self.output_format,
                     tool_choice="auto",
                     tools=self.tools_list,
                 )
-            response_message = response.choices[0].message
-            # print(response_message)
-            tool_calls = response_message.tool_calls
 
-            if tool_calls:
-                self.messages.append(response_message)
-                for tool_call in tool_calls:
-                    await self._append_tool_response(tool_call)
-                continue
+            # instructor directly outputs response.choices[0].message. so we will do response_message = response
+            # response_message = response.choices[0].message
 
-            parsed_response_content: self.output_format = response_message.parsed
-            return parsed_response_content
+            # instructor does not support funciton in JSON mode
+            # if response_message.tool_calls:
+            #     tool_calls = response_message.tool_calls
+
+            # if tool_calls:
+            #     self.messages.append(response_message)
+            #     for tool_call in tool_calls:
+            #         await self._append_tool_response(tool_call)
+            #     continue
+
+            # parsed_response_content: self.output_format = response_message.parsed
+
+            try:
+                assert isinstance(response, self.output_format)
+            except AssertionError:
+                raise TypeError(
+                    f"Expected response_message to be of type {self.output_format.__name__}, but got {type(response).__name__}"
+                )
+
+            return response
 
     async def _append_tool_response(self, tool_call):
         function_name = tool_call.function.name

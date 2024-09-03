@@ -5,7 +5,6 @@ from agentq.core.agent.base import BaseAgent
 from agentq.core.memory import ltm
 from agentq.core.models.models import AgentQBaseInput, AgentQBaseOutput
 from agentq.core.prompts.prompts import LLM_PROMPTS
-from agentq.utils.logger import logger
 
 
 class AgentQ(BaseAgent):
@@ -43,5 +42,4 @@ class AgentQ(BaseAgent):
         system_prompt += f"\nToday's date is: {today_date}"
         system_prompt += f"\nCurrent weekday is: {weekday}"
 
-        logger.info(f"{system_prompt}")
         return system_prompt
