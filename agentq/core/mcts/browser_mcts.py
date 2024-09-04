@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import textwrap
 from typing import List, Optional, Tuple
 
@@ -12,6 +13,7 @@ from agentq.core.agent.base import BaseAgent
 from agentq.core.agent.vision_agent import VisionAgent
 from agentq.core.mcts.base import Reasoner, SearchConfig, WorldModel
 from agentq.core.mcts.mcts import MCTS, MCTSResult
+from agentq.core.mcts.visualization.visualizer_client import visualize
 from agentq.core.models.models import (
     Action,
     ActionType,
@@ -394,12 +396,13 @@ async def main():
         actor=actor,
         critic=critic,
         vision=vision,
-        n_iterations=15,
+        n_iterations=30,
         exploration_weight=1.0,
     )
 
     print(f"{YELLOW}[DEBUG] Running MCTS wrapper{RESET}")
     result = await mcts_wrapper()
+    visualize(result=result)
 
     print(f"{CYAN}[DEBUG] Printing MCTS result{RESET}")
     BrowserMCTSWrapper.print_result(result)
@@ -411,7 +414,30 @@ async def main():
     await playwright_manager.stop_playwright()
 
 
+class StreamToFile:
+    def __init__(self, filename):
+        self.file = open(filename, "w", buffering=1)
+
+    def write(self, data):
+        self.file.write(data)
+        self.file.flush()
+
+    def flush(self):
+        self.file.flush()
+
+    def close(self):
+        self.file.close()
+
+
 if __name__ == "__main__":
     print(f"{BLUE}[DEBUG] Script started{RESET}")
-    asyncio.run(main())
+    output_stream = StreamToFile("output.txt")
+    sys.stdout = output_stream
+    sys.stderr = output_stream
+    try:
+        asyncio.run(main())
+    finally:
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        output_stream.close()
     print(f"{GREEN}[DEBUG] Script finished{RESET}")
