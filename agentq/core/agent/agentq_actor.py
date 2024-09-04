@@ -5,7 +5,6 @@ from agentq.core.agent.base import BaseAgent
 from agentq.core.memory import ltm
 from agentq.core.models.models import AgentQActorInput, AgentQActorOutput
 from agentq.core.prompts.prompts import LLM_PROMPTS
-from agentq.utils.logger import logger
 
 
 class AgentQActor(BaseAgent):

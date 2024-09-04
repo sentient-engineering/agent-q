@@ -126,6 +126,7 @@ class BaseAgent:
             if len(self.tools_list) == 0:
                 response = self.client.chat.completions.create(
                     model="gpt-4o-2024-08-06",
+                    # model="gpt-4o-mini",
                     # model="groq/llama3-groq-70b-8192-tool-use-preview",
                     # model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
                     messages=self.messages,
@@ -137,6 +138,7 @@ class BaseAgent:
                 # print(self.tools_list)
                 response = self.client.chat.completions.create(
                     model="gpt-4o-2024-08-06",
+                    # model="gpt-4o-mini",
                     # model="groq/llama3-groq-70b-8192-tool-use-preview",
                     # model="together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
                     messages=self.messages,

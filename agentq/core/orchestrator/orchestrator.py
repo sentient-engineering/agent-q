@@ -385,42 +385,66 @@ class Orchestrator:
         results = []
         for action in actions:
             page = await self.playwright_manager.get_current_page()
-            if action.type == ActionType.GOTO_URL:
-                result = await openurl(url=action.website, timeout=action.timeout or 0)
-                await page.wait_for_load_state("networkidle", timeout=10000)
-                print("Action - GOTO")
-            elif action.type == ActionType.TYPE:
-                await page.wait_for_selector(f"[mmid='{action.mmid}']", timeout=5000)
-                entry = EnterTextEntry(
-                    query_selector=f"[mmid='{action.mmid}']", text=action.content
-                )
-                result = await entertext(entry)
-                print("Action - TYPE")
-            elif action.type == ActionType.CLICK:
-                await page.wait_for_selector(f"[mmid='{action.mmid}']", timeout=5000)
-                result = await click(
-                    selector=f"[mmid='{action.mmid}']",
-                    wait_before_execution=action.wait_before_execution or 0,
-                )
-                print("Action - CLICK")
-            elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
-                await page.wait_for_selector(
-                    f"[mmid='{action.text_element_mmid}']", timeout=5000
-                )
-                await page.wait_for_selector(
-                    f"[mmid='{action.click_element_mmid}']", timeout=5000
-                )
-                result = await enter_text_and_click(
-                    text_selector=f"[mmid='{action.text_element_mmid}']",
-                    text_to_enter=action.text_to_enter,
-                    click_selector=f"[mmid='{action.click_element_mmid}']",
-                    wait_before_click_execution=action.wait_before_click_execution or 0,
-                )
-                print("Action - ENTER TEXT AND CLICK")
-            else:
-                result = f"Unsupported action type: {action.type}"
+            max_retries = 3
+            retry_delay = 2
 
-            results.append(result)
+            for attempt in range(max_retries):
+                try:
+                    if action.type == ActionType.GOTO_URL:
+                        result = await openurl(
+                            url=action.website, timeout=action.timeout or 0
+                        )
+                        await page.wait_for_load_state("networkidle", timeout=10000)
+                        print("Action - GOTO")
+                    elif action.type == ActionType.TYPE:
+                        # await page.wait_for_selector(
+                        #     f"[mmid='{action.mmid}']", timeout=10000
+                        # )
+                        entry = EnterTextEntry(
+                            query_selector=f"[mmid='{action.mmid}']",
+                            text=action.content,
+                        )
+                        result = await entertext(entry)
+                        print("Action - TYPE")
+                    elif action.type == ActionType.CLICK:
+                        # await page.wait_for_selector(
+                        #     f"[mmid='{action.mmid}']", timeout=10000
+                        # )
+                        result = await click(
+                            selector=f"[mmid='{action.mmid}']",
+                            wait_before_execution=action.wait_before_execution or 0,
+                        )
+                        print("Action - CLICK")
+                    elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
+                        # await page.wait_for_selector(
+                        #     f"[mmid='{action.text_element_mmid}']",
+                        #     timeout=10000,
+                        # )
+                        # await page.wait_for_selector(
+                        #     f"[mmid='{action.click_element_mmid}']",
+                        #     timeout=10000,
+                        # )
+                        result = await enter_text_and_click(
+                            text_selector=f"[mmid='{action.text_element_mmid}']",
+                            text_to_enter=action.text_to_enter,
+                            click_selector=f"[mmid='{action.click_element_mmid}']",
+                            wait_before_click_execution=action.wait_before_click_execution
+                            or 0,
+                        )
+                        print("Action - ENTER TEXT AND CLICK")
+                    else:
+                        result = f"Unsupported action type: {action.type}"
+
+                    results.append(result)
+                    break  # If successful, break out of the retry loop
+                except Exception as e:
+                    print(f"Error during action {action.type}: {e}")
+                    if attempt < max_retries - 1:
+                        print(f"Retrying in {retry_delay} seconds...")
+                        await asyncio.sleep(retry_delay)
+                    else:
+                        print(f"Max retries reached. Skipping action: {action.type}")
+                        results.append(f"Failed to execute action: {action.type}")
 
         return results
 
