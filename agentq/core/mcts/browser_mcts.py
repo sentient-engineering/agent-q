@@ -3,7 +3,6 @@ import textwrap
 from typing import List, Optional, Tuple
 
 import numpy as np
-from playwright.async_api import async_playwright as playwright
 from pydantic import BaseModel
 from pydantic.fields import Field
 
@@ -105,7 +104,9 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         print(f"{YELLOW}[DEBUG] Executing browser action: {action.action.type}{RESET}")
 
         if action.action.type == ActionType.GOTO_URL:
+            print(f"{CYAN}[DEBUG] Trying to go to url{RESET}")
             await openurl(url=action.action.website, timeout=action.action.timeout or 0)
+            print(f"{CYAN}[DEBUG] Went to url{RESET}")
         elif action.action.type == ActionType.TYPE:
             entry = EnterTextEntry(
                 query_selector=f"[mmid='{action.action.mmid}']",
@@ -188,11 +189,12 @@ class BrowserMCTSSearchConfig(SearchConfig[BrowserState, BrowserAction, str]):
     async def reward(
         self, state: BrowserState, action: BrowserAction, **kwargs
     ) -> Tuple[float, dict]:
-        if await is_terminal(state=state, vision=self.vision):
+        terminal_state = await is_terminal(state=state, vision=self.vision)
+        if terminal_state:
             print(f"{GREEN}[DEBUG] Terminal state reached, reward: 1.0{RESET}")
             return 1.0, {}
         else:
-            print(f"{YELLOW}[DEBUG] Non-terminal state, reward: -0.01{RESET}")
+            print(f"{RED}[DEBUG] Non-terminal state, reward: -0.01{RESET}")
             return -0.01, {}
 
     def fast_reward(
@@ -246,7 +248,7 @@ async def is_terminal(state: BrowserState, vision: BaseAgent) -> bool:
     screenshot = await get_screenshot()
     vision_input: VisionInput = VisionInput(objective=state.objective)
     vision_output: VisionOutput = await vision.run(vision_input, screenshot)
-    print(f"{CYAN}[DEBUG] Output of vision LLM {vision_output.is_terminal}{RESET}")
+    print(f"{YELLOW}[DEBUG] Output of vision LLM {vision_output.is_terminal}{RESET}")
     return vision_output.is_terminal
 
 
@@ -290,7 +292,7 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
         print(f"{BLUE}[DEBUG] Printing rewards before generating dpo pairs")
         for i in range(len(result.trace_of_nodes)):
             node = result.trace_of_nodes[i]
-            print(f"{GREEN} {node.state.url} - {node.Q}")
+            print(f"{BLUE} {node.state.url} - {node.Q}")
 
         for i in range(len(result.trace_of_nodes) - 1):
             current_node = result.trace_of_nodes[i]
@@ -335,23 +337,23 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
         for i, (state, winning_action, losing_action) in enumerate(dpo_pairs, 1):
             print(f"\n{CYAN}╔══ Pair {i} ══╗{RESET}")
 
-        # Print state (URL and trimmed DOM)
-        print(f"{YELLOW}┌─ State ─┐{RESET}")
-        print(f"{YELLOW}│ URL:{RESET} {state.url}")
-        trimmed_dom = textwrap.shorten(state.dom, width=100, placeholder="...")
-        print(f"{YELLOW}│ DOM:{RESET} {trimmed_dom}")
+            # Print state (URL and trimmed DOM)
+            print(f"{YELLOW}┌─ State ─┐{RESET}")
+            print(f"{YELLOW}│ URL:{RESET} {state.url}")
+            trimmed_dom = textwrap.shorten(state.dom, width=100, placeholder="...")
+            print(f"{YELLOW}│ DOM:{RESET} {trimmed_dom}")
 
-        # Print winning action
-        print(f"{GREEN}┌─ Winning Action ─┐{RESET}")
-        print(f"{GREEN}│ Type:{RESET} {winning_action.action.type}")
-        print(f"{GREEN}│ Details:{RESET} {winning_action}")
+            # Print winning action
+            print(f"{GREEN}┌─ Winning Action ─┐{RESET}")
+            print(f"{GREEN}│ Type:{RESET} {winning_action.action.type}")
+            print(f"{GREEN}│ Details:{RESET} {winning_action}")
 
-        # Print losing action
-        print(f"{RED}┌─ Losing Action ─┐{RESET}")
-        print(f"{RED}│ Type:{RESET} {losing_action.action.type}")
-        print(f"{RED}│ Details:{RESET} {losing_action}")
+            # Print losing action
+            print(f"{RED}┌─ Losing Action ─┐{RESET}")
+            print(f"{RED}│ Type:{RESET} {losing_action.action.type}")
+            print(f"{RED}│ Details:{RESET} {losing_action}")
 
-        print(f"{CYAN}╚{'═' * (len('══ Pair X ══') - 2)}╝{RESET}")
+            print(f"{CYAN}╚{'═' * (len('══ Pair X ══') - 2)}╝{RESET}")
 
         print(f"\n{MAGENTA}═══════════════ End of DPO Pairs ═══════════════{RESET}")
 
@@ -392,7 +394,7 @@ async def main():
         actor=actor,
         critic=critic,
         vision=vision,
-        n_iterations=1,
+        n_iterations=15,
         exploration_weight=1.0,
     )
 

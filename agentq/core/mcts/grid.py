@@ -1,8 +1,6 @@
 import asyncio
 from typing import List, NamedTuple, Tuple
 
-import numpy as np
-
 from agentq.core.mcts.base import Reasoner, SearchConfig, WorldModel
 from agentq.core.mcts.mcts import MCTS, MCTSResult
 
@@ -105,7 +103,7 @@ class MCTSGridWrapper(Reasoner[GridState, GridAction, None]):
             n_iters=n_iterations,
             w_exp=exploration_weight,
             cum_reward=sum,
-            #calc_q=np.mean,
+            # calc_q=np.mean,
             simulate_strategy="random",
             output_strategy="max_reward",
             depth_limit=len(grid) * len(grid[0]),
