@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel
@@ -79,6 +79,11 @@ class EnterTextAndClickAction(BaseModel):
     wait_before_click_execution: Optional[float] = Field(
         description="Optional wait time in seconds before executing the click event logic"
     )
+
+
+class Score(IntEnum):
+    FAIL = 0
+    PASS = 1
 
 
 # class GetDomTextAction(BaseModel):
@@ -201,3 +206,14 @@ class AgentQCriticInput(BaseModel):
 class AgentQCriticOutput(BaseModel):
     thought: str
     top_task: TaskWithActions
+
+
+class EvalAgentInput(BaseModel):
+    objective: str
+    agent_output: str
+    current_page_url: str
+    current_page_dom: str
+
+
+class EvalAgentOutput(BaseModel):
+    score: Score

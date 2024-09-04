@@ -1,6 +1,6 @@
 import os
 import time
-from typing import Any, Union, Dict
+from typing import Any, Dict, Optional, Union
 
 from playwright.async_api import Page
 from typing_extensions import Annotated
@@ -17,6 +17,7 @@ async def get_dom_with_content_type(
         str,
         "The type of content to extract: 'text_only': Extracts the innerText of the highest element in the document and responds with text, or 'input_fields': Extracts the text input and button elements in the dom.",
     ],
+    webpage: Optional[Page] = None,
 ) -> Annotated[
     Union[Dict[str, Any], str, None],
     "The output based on the specified content type.",
@@ -50,7 +51,12 @@ async def get_dom_with_content_type(
     start_time = time.time()
     # Create and use the PlaywrightManager
     browser_manager = PlaywrightManager(browser_type="chromium", headless=False)
-    page = await browser_manager.get_current_page()
+
+    if webpage is not None:
+        page = webpage
+    else:
+        page = await browser_manager.get_current_page()
+
     if page is None:  # type: ignore
         raise ValueError("No active page found. OpenURL command opens a new page.")
 

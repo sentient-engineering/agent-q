@@ -43,5 +43,4 @@ class AgentQCritic(BaseAgent):
         system_prompt += f"\nToday's date is: {today_date}"
         system_prompt += f"\nCurrent weekday is: {weekday}"
 
-        logger.info(f"{system_prompt}")
         return system_prompt

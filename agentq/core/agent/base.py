@@ -73,7 +73,6 @@ class BaseAgent:
     async def run(
         self, input_data: BaseModel, screenshot: str = None, session_id: str = None
     ) -> BaseModel:
-
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
 
@@ -86,7 +85,12 @@ class BaseAgent:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": input_data.model_dump_json()},
+                        {
+                            "type": "text",
+                            "text": input_data.model_dump_json(
+                                exclude={"current_page_dom", "current_page_url"}
+                            ),
+                        },
                         {"type": "image_url", "image_url": {"url": screenshot}},
                     ],
                 }

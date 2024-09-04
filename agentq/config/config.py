@@ -12,7 +12,7 @@ PROJECT_SOURCE_ROOT = os.path.join(PROJECT_ROOT, "agentq")
 SOURCE_LOG_FOLDER_PATH = os.path.join(PROJECT_SOURCE_ROOT, "log_files")
 PROJECT_TEMP_PATH = os.path.join(PROJECT_SOURCE_ROOT, "temp")
 USER_PREFERENCES_PATH = os.path.join(PROJECT_SOURCE_ROOT, "user_preferences")
-PROJECT_TEST_ROOT = os.path.join(PROJECT_SOURCE_ROOT, "test")
+PROJECT_TEST_ROOT = os.path.join(PROJECT_ROOT, "test")
 
 # Check if the log folder exists, and if not, create it
 if not os.path.exists(SOURCE_LOG_FOLDER_PATH):

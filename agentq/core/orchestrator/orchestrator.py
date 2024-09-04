@@ -182,10 +182,10 @@ class Orchestrator:
         for attempt in range(max_retries):
             try:
                 # Get the current page
-                page = await self.playwright_manager.get_current_page()
+                # page = await self.playwright_manager.get_current_page()
 
                 # Wait for the page to load
-                await page.wait_for_load_state("networkidle", timeout=10000)
+                # await page.wait_for_load_state("networkidle", timeout=10000)
 
                 # Get DOM and URL
                 dom = await get_dom_with_content_type(content_type="all_fields")
@@ -330,6 +330,8 @@ class Orchestrator:
                 print("Action results:", action_results)
                 flattened_results = "; ".join(action_results)
                 agentq_output.next_task.result = flattened_results
+            else:
+                agentq_output.next_task.result = "No actions were called. Call actions next time or use the provided DOM to get the information you need"
 
             self.memory.completed_tasks.append(agentq_output.next_task)
             self.memory.plan = agentq_output.plan

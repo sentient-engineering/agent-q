@@ -10,6 +10,8 @@ from termcolor import colored
 
 from agentq.config.config import PROJECT_TEST_ROOT
 from agentq.core.agent.agentq import AgentQ
+from agentq.core.agent.agentq_actor import AgentQActor
+from agentq.core.agent.agentq_critic import AgentQCritic
 from agentq.core.agent.browser_nav_agent import BrowserNavAgent
 from agentq.core.agent.planner_agent import PlannerAgent
 from agentq.core.models.models import State
@@ -167,7 +169,8 @@ async def execute_single_task(
     )
 
     evaluator = evaluator_router(task_config)
-    cdp_session = await page.context.new_cdp_session(page)
+    # we will use the existing client and not have another one created. thus None CDP session
+    cdp_session = None
     evaluator_result = await evaluator(
         task_config=task_config,
         page=page,
@@ -193,7 +196,9 @@ async def run_tests(
     check_top_level_test_folders()
 
     if not test_file:
-        test_file = os.path.join(TEST_TASKS, "test.json")
+        test_file = os.path.join(
+            TEST_TASKS, "annotator_dry_run_webvoyager_tasks_30.json"
+        )
 
     logger.info(f"Loading test configurations from: {test_file}")
     test_configurations = load_config(test_file)
@@ -286,11 +291,13 @@ async def main():
     state_to_agent_map = {
         State.PLAN: PlannerAgent(),
         State.BROWSE: BrowserNavAgent(),
-        State.CONTINUE: AgentQ(),
+        State.AGENTQ_BASE: AgentQ(),
+        State.AGENTQ_ACTOR: AgentQActor(),
+        State.AGENTQ_CRITIC: AgentQCritic(),
     }
     orchestrator = Orchestrator(state_to_agent_map=state_to_agent_map, eval_mode=True)
     await orchestrator.start()
-    await run_tests(orchestrator, 13, 31)  # Example: Run first 5 tests
+    await run_tests(orchestrator, 0, 29)  # Example: Run first 5 tests
     await orchestrator.shutdown()
 
 

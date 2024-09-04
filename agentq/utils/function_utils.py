@@ -92,6 +92,7 @@ from typing import (
 
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Literal, get_args, get_origin
+from playwright.async_api import Page
 
 from ._pydantic import (
     JsonSchemaValue,
@@ -212,6 +213,24 @@ class ToolFunction(BaseModel):
 def get_parameter_json_schema(
     k: str, v: Any, default_values: Dict[str, Any]
 ) -> JsonSchemaValue:
+    
+    if isinstance(v, type) and issubclass(v, Page):
+        # Skip schema generation for Page objects - some tools take page as an optional input (this is only utilised during evals when page object is passed to functions like get_dom_content)
+        return {
+            "type": "object",
+            "description": "Playwright Page object",
+        }
+
+    # Handle Optional types
+    if get_origin(v) is Union and type(None) in get_args(v):
+        non_none_type = next(arg for arg in get_args(v) if arg is not type(None))
+        if isinstance(non_none_type, type) and issubclass(non_none_type, Page):
+            # Skip schema generation for Optional[Page]
+            return {
+                "type": "object",
+                "description": "Optional Playwright Page object",
+            }
+    
     def type2description(k: str, v: Union[Annotated[Type[Any], str], Type[Any]]) -> str:
         if get_origin(v) is Annotated:
             args = get_args(v)
@@ -288,6 +307,16 @@ def get_parameters(
             else:
                 v_type = v
                 v_desc = k
+            
+            if (isinstance(v_type, type) and issubclass(v_type, Page)) or (
+                get_origin(v_type) is Union
+                and any(
+                    isinstance(arg, type) and issubclass(arg, Page)
+                    for arg in get_args(v_type)
+                )
+            ):
+                continue
+            
 
             if get_origin(v_type) is List:
                 item_type = get_args(v_type)[0]

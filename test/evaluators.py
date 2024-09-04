@@ -10,6 +10,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from playwright.sync_api import CDPSession, Page
 from termcolor import colored
 
+from agentq.core.agent.eval_agent import EvalAgent
+from agentq.core.models.models import EvalAgentInput, EvalAgentOutput
+from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_type
+from agentq.core.skills.get_screenshot import get_screenshot
+from agentq.core.skills.get_url import geturl
 from agentq.utils.logger import logger
 from test.test_utils import (
     clean_answer,
@@ -370,6 +375,48 @@ class ManualContentEvaluator(Evaluator):
         return eval_response
 
 
+class LLMEvaluator(Evaluator):
+    """Evaluation Route for LLM Evaluation."""
+
+    def __init__(self):
+        super().__init__()
+        self.eval_agent = EvalAgent()
+
+    async def __call__(
+        self,
+        task_config: Dict[str, Any],
+        page: Page,
+        client: Optional[CDPSession] = None,
+        answer: Optional[str] = None,
+    ) -> Dict[str, Union[float, str]]:
+        # Get current page URL and DOM content
+        current_url = await geturl(webpage=page)
+        dom_content = await get_dom_with_content_type(
+            content_type="all_fields", webpage=page
+        )
+
+        # Prepare input for the eval agent
+        eval_input = EvalAgentInput(
+            objective=task_config["intent"],
+            agent_output=answer,
+            current_page_url=current_url,
+            current_page_dom=str(dom_content),
+        )
+
+        # Get screenshot
+        screenshot = await get_screenshot(webpage=page)
+
+        # Call the eval agent
+        eval_output: EvalAgentOutput = await self.eval_agent.run(eval_input, screenshot)
+
+        # Convert score to float
+        score = float(eval_output.score)
+
+        logger.info(f"LLM Evaluation score: {score}")
+
+        return {"score": score}
+
+
 class EvaluatorComb(Evaluator):
     """Combines multiple evaluators to perform a comprehensive evaluation based on different criteria.
 
@@ -444,6 +491,9 @@ def evaluator_router(task_config: Dict[str, Any]) -> EvaluatorComb:
         elif eval_type == "manual":
             logger.info("Adding manual evaluator")
             evaluators.append(ManualContentEvaluator())
+        elif eval_type == "llm_eval":
+            logger.info("Adding LLM Evaluator")
+            evaluators.append(LLMEvaluator())
         else:
             raise ValueError(f"eval_type {eval_type} is not supported")
 

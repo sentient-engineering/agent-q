@@ -1,11 +1,12 @@
-from typing_extensions import Annotated
+from playwright.async_api import Page
+from typing_extensions import Annotated, Optional
 
 from agentq.core.web_driver.playwright import PlaywrightManager
 
 
-async def geturl() -> (
-    Annotated[str, "Returns the full URL of the current active web site/page."]
-):
+async def geturl(
+    webpage: Optional[Page] = None,
+) -> Annotated[str, "Returns the full URL of the current active web site/page."]:
     """
     Returns the full URL of the current page
 
@@ -18,7 +19,10 @@ async def geturl() -> (
     try:
         # Create and use the PlaywrightManager
         browser_manager = PlaywrightManager(browser_type="chromium", headless=False)
-        page = await browser_manager.get_current_page()
+        if webpage is not None:
+            page = webpage
+        else:
+            page = await browser_manager.get_current_page()
 
         if not page:
             raise ValueError("No active page found. OpenURL command opens a new page.")
