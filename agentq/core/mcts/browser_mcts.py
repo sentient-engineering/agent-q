@@ -1,4 +1,5 @@
 import asyncio
+import textwrap
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -102,16 +103,6 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
 
     async def execute_browser_action(self, action: BrowserAction) -> Tuple[str, str]:
         print(f"{YELLOW}[DEBUG] Executing browser action: {action.action.type}{RESET}")
-        playwright_manager = PlaywrightManager()
-        page = await playwright_manager.get_current_page()
-
-        async def wait_for_navigation():
-            try:
-                await page.wait_for_load_state("networkidle", timeout=30000)
-            except playwright._impl._errors.TimeoutError:
-                print(
-                    f"{MAGENTA}[DEBUG] Navigation timeout, proceeding with current state{RESET}"
-                )
 
         if action.action.type == ActionType.GOTO_URL:
             await openurl(url=action.action.website, timeout=action.action.timeout or 0)
@@ -128,7 +119,6 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
                 selector=f"[mmid='{action.action.mmid}']",
                 wait_before_execution=action.action.wait_before_execution or 0,
             )
-            await page.wait_for_load_state("networkidle", timeout=10000)
             print(f"{CYAN}[DEBUG] Clicked element{RESET}")
         elif action.action.type == ActionType.ENTER_TEXT_AND_CLICK:
             await enter_text_and_click(
@@ -141,16 +131,15 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
             await wait_for_navigation()
             print(f"{CYAN}[DEBUG] Entered text and clicked element{RESET}")
 
-        await wait_for_navigation()
         try:
             new_dom = await self.get_current_dom()
-        except playwright._impl._errors.Error as e:
+        except Exception as e:
             print(f"{RED}[DEBUG] Error getting DOM after action: {e}{RESET}")
             new_dom = "Error: Unable to retrieve DOM"
 
         try:
             new_url = await self.get_current_url()
-        except playwright._impl._errors.Error as e:
+        except Exception as e:
             print(f"{RED}[DEBUG] Error getting URL after action: {e}{RESET}")
             new_url = "Error: Unable to retrieve URL"
 
@@ -158,11 +147,13 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         return new_dom, new_url
 
     async def get_current_dom(self) -> str:
+        await wait_for_navigation()
         dom = await get_dom_with_content_type(content_type="all_fields")
         print(f"{CYAN}[DEBUG] Got current DOM (length: {len(dom)}){RESET}")
         return str(dom)
 
     async def get_current_url(self) -> str:
+        await wait_for_navigation()
         url = await geturl()
         print(f"{CYAN}[DEBUG] Got current URL: {url}{RESET}")
         return url
@@ -281,17 +272,44 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
             depth_limit=20,
         )
         super().__init__(world_model, search_config, search_algo)
+        self.dpo_pairs = []
         print(
             f"{BLUE}[DEBUG] BrowserMCTSWrapper initialized with objective: {objective}{RESET}"
         )
 
     async def __call__(self) -> MCTSResult:
         print(f"{YELLOW}[DEBUG] Starting MCTS search{RESET}")
-        return await super().__call__("")
+        result = await super().__call__("")
+        self.generate_dpo_pairs(result)
+        return result
+
+    def generate_dpo_pairs(self, result: MCTSResult):
+        if result.trace_of_nodes is None or len(result.trace_of_nodes) < 2:
+            return
+
+        print(f"{BLUE}[DEBUG] Printing rewards before generating dpo pairs")
+        for i in range(len(result.trace_of_nodes)):
+            node = result.trace_of_nodes[i]
+            print(f"{GREEN} {node.state.url} - {node.Q}")
+
+        for i in range(len(result.trace_of_nodes) - 1):
+            current_node = result.trace_of_nodes[i]
+            next_node = result.trace_of_nodes[i + 1]
+
+            if current_node.children:
+                winning_action = next_node.action
+                for child in current_node.children:
+                    if child.action != winning_action:
+                        self.dpo_pairs.append(
+                            (current_node.state, winning_action, child.action)
+                        )
+
+    def get_dpo_pairs(self):
+        return self.dpo_pairs
 
     @staticmethod
     def print_result(result: MCTSResult):
-        if result.trace is None:
+        if result.trace is None or len(result.trace) == 0:
             print(f"{RED}[DEBUG] No valid path found{RESET}")
             return
 
@@ -306,10 +324,57 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
         print(f"{GREEN}[DEBUG] Cumulative reward: {result.cum_reward}{RESET}")
         print(f"{GREEN}[DEBUG] Total steps: {len(actions)}{RESET}")
 
+    @staticmethod
+    def print_dpo_pairs(dpo_pairs):
+        if not dpo_pairs:
+            print(f"{RED}No DPO pairs generated.{RESET}")
+            return
+
+        print(f"\n{MAGENTA}═══════════════ Generated DPO Pairs ═══════════════{RESET}")
+
+        for i, (state, winning_action, losing_action) in enumerate(dpo_pairs, 1):
+            print(f"\n{CYAN}╔══ Pair {i} ══╗{RESET}")
+
+        # Print state (URL and trimmed DOM)
+        print(f"{YELLOW}┌─ State ─┐{RESET}")
+        print(f"{YELLOW}│ URL:{RESET} {state.url}")
+        trimmed_dom = textwrap.shorten(state.dom, width=100, placeholder="...")
+        print(f"{YELLOW}│ DOM:{RESET} {trimmed_dom}")
+
+        # Print winning action
+        print(f"{GREEN}┌─ Winning Action ─┐{RESET}")
+        print(f"{GREEN}│ Type:{RESET} {winning_action.action.type}")
+        print(f"{GREEN}│ Details:{RESET} {winning_action}")
+
+        # Print losing action
+        print(f"{RED}┌─ Losing Action ─┐{RESET}")
+        print(f"{RED}│ Type:{RESET} {losing_action.action.type}")
+        print(f"{RED}│ Details:{RESET} {losing_action}")
+
+        print(f"{CYAN}╚{'═' * (len('══ Pair X ══') - 2)}╝{RESET}")
+
+        print(f"\n{MAGENTA}═══════════════ End of DPO Pairs ═══════════════{RESET}")
+
+
+async def wait_for_navigation(max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            playwright_manager = PlaywrightManager()
+            page = await playwright_manager.get_current_page()
+            await page.wait_for_load_state("domcontentloaded", timeout=30000)
+            print(
+                f"{GREEN}[DEBUG] Navigation successful on attempt {attempt + 1}{RESET}"
+            )
+            return
+        except Exception as e:
+            print(
+                f"{YELLOW}[DEBUG] Navigation error on attempt {attempt + 1}: {str(e)}{RESET}"
+            )
+    print(f"{RED}[DEBUG] Navigation failed after {max_retries} attempts{RESET}")
+
 
 async def main():
     print(f"{BLUE}Starting MCTS{RESET}")
-
     playwright_manager = PlaywrightManager()
     await playwright_manager.async_initialize()
     print(f"{GREEN}Browser started and ready{RESET}")
@@ -336,6 +401,11 @@ async def main():
 
     print(f"{CYAN}[DEBUG] Printing MCTS result{RESET}")
     BrowserMCTSWrapper.print_result(result)
+
+    dpo_pairs = mcts_wrapper.get_dpo_pairs()
+
+    mcts_wrapper.print_dpo_pairs(dpo_pairs=dpo_pairs)
+
     await playwright_manager.stop_playwright()
 
 

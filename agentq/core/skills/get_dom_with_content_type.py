@@ -62,7 +62,7 @@ async def get_dom_with_content_type(
 
     extracted_data = None
     await wait_for_non_loading_dom_state(
-        page, 2000
+        page, 5000
     )  # wait for the DOM to be ready, non loading means external resources do not need to be loaded
     user_success_message = ""
     if content_type == "all_fields":

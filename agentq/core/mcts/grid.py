@@ -118,7 +118,7 @@ class MCTSGridWrapper(Reasoner[GridState, GridAction, None]):
 
     @staticmethod
     def print_path(result: MCTSResult):
-        if result.trace is None:
+        if result.trace is None or len(result.trace) == 0:
             print("No valid path found")
             return
 
