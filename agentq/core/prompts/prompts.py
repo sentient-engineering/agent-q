@@ -483,6 +483,8 @@ Some basic information about the user: \n $basic_user_information
     """,
     "EXTRACT_TEXT_FROM_PDF_PROMPT": """Extracts text from a PDF file hosted at the given URL.""",
     "UPLOAD_FILE_PROMPT": """This skill uploads a file on the page opened by the web browser instance""",
+    "VISION_AGENT_PROMPT": """You are an expert in web automation who is functioning as a judge to determine if a given objective has been achieved. You are evaluating the work of an AI agent which is supposed to carry out the user's  objective by controlling the browser. You will be provided with the user's objective and a screenshot. The screenshot represents the final state of the browser post AI agent has attempted to achieve the objective.
+    You job is to output a boolea to tell if the objective has been achieved by looking at the screenshot VERY CAREFULLY. Return a single boolean is_terminal as true if user's objective has been achieved by the AI agent and false otherwise""",
     "EVAL_AGENT_PROMPT": """
     You are a web automation expert who is functioning as an evaluator. You are evaluating the work of an AI agent which is supposed to carry out the user's provided objective by controlling the browser. 
     
