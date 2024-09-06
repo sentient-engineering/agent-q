@@ -24,7 +24,7 @@ class BaseAgent:
         keep_message_history: bool = True,
     ):
         # Metdata
-        self.agnet_name = name
+        self.agent_name = name
 
         # Messages
         self.system_prompt = system_prompt
@@ -69,7 +69,7 @@ class BaseAgent:
     def _initialize_messages(self):
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    @traceable(run_type="chain", name="agent_run")
+    @traceable(run_type="chain", name=lambda self: f"{self.agent_name}_run")
     async def run(
         self, input_data: BaseModel, screenshot: str = None, session_id: str = None
     ) -> BaseModel:

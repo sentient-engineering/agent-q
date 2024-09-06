@@ -33,6 +33,7 @@ from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_ty
 from agentq.core.skills.get_screenshot import get_screenshot
 from agentq.core.skills.get_url import geturl
 from agentq.core.skills.open_url import openurl
+from agentq.core.skills.solve_captcha import solve_captcha
 from agentq.core.web_driver.playwright import PlaywrightManager
 
 init(autoreset=True)
@@ -432,6 +433,13 @@ class Orchestrator:
                             or 0,
                         )
                         print("Action - ENTER TEXT AND CLICK")
+                    elif action.type == ActionType.SOLVE_CAPTCHA:
+                        result = await solve_captcha(
+                            text_selector=f"[mmid='{action.text_element_mmid}']",
+                            click_selector=f"[mmid='{action.click_element_mmid}']",
+                            wait_before_click_execution=action.wait_before_click_execution
+                            or 0,
+                        )
                     else:
                         result = f"Unsupported action type: {action.type}"
 

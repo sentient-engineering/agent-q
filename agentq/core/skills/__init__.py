@@ -16,6 +16,7 @@ from agentq.core.skills.get_url import geturl
 from agentq.core.skills.get_user_input import get_user_input
 from agentq.core.skills.open_url import openurl
 from agentq.core.skills.press_key_combination import press_key_combination
+from agentq.core.skills.solve_captcha import solve_captcha
 
 __all__ = (
     click,
@@ -32,4 +33,5 @@ __all__ = (
     get_user_input,
     openurl,
     press_key_combination,
+    solve_captcha,
 )

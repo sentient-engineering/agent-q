@@ -9,6 +9,7 @@ from agentq.core.skills.get_url import geturl
 from agentq.core.skills.open_url import openurl
 from agentq.core.skills.pdf_text_extractor import extract_text_from_pdf
 from agentq.core.skills.press_key_combination import press_key_combination
+from agentq.core.skills.solve_captcha import solve_captcha
 from agentq.core.skills.upload_file import upload_file
 
 
@@ -40,4 +41,5 @@ class BrowserNavAgent(BaseAgent):
             (press_key_combination, LLM_PROMPTS["PRESS_KEY_COMBINATION_PROMPT"]),
             (extract_text_from_pdf, LLM_PROMPTS["EXTRACT_TEXT_FROM_PDF_PROMPT"]),
             (upload_file, LLM_PROMPTS["UPLOAD_FILE_PROMPT"]),
+            {solve_captcha, LLM_PROMPTS["SOLVE_CAPTCHA_PROMPT"]},
         ]

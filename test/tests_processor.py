@@ -297,7 +297,9 @@ async def main():
     }
     orchestrator = Orchestrator(state_to_agent_map=state_to_agent_map, eval_mode=True)
     await orchestrator.start()
-    await run_tests(orchestrator, 3, 29)  # Example: Run first 5 tests
+    await run_tests(
+        orchestrator=orchestrator, min_task_index=2, max_task_index=3
+    )  # Example: Run first 5 tests
     await orchestrator.shutdown()
 
 

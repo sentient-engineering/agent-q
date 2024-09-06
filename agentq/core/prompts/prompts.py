@@ -176,6 +176,7 @@ Actions available and their description -
 2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
 3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
 4. ENTER_TEXT_AND_CLICK[TEXT_ELEMENT_MMID, TEXT_TO_ENTER, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION] - This action enters text into a specified element and clicks another element, both identified by their mmid. Ideal for seamless actions like submitting search queries, this integrated approach ensures superior performance over separate text entry and click commands. Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered. Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
+5. SOLVE_CAPTCHA[TEXT_ELEMENT_MMID, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION]- This actions solve a CAPTCHA challenge on a webpage. The action automatically processes the CAPTCHA, enters the solution into specified text element and clicks the specified submit button. The text element and button element are identified using their mmid. The WAIT_BEFORE_CLICK_EXECUTION prapameter allows for a delay before clicking, if needed. Returns Success if CAPTHCA is solved & submitted and false/error message, otherwise.  
 
  ## Planning Guidelines: ##
  1. If you know the direct URL, use it directly instead of searching for it (e.g. go to www.espn.com). Optimise the plan to avoid unnecessary steps.
@@ -282,6 +283,8 @@ Output:
  2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
  3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
  4. ENTER_TEXT_AND_CLICK[TEXT_ELEMENT_MMID, TEXT_TO_ENTER, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION] - This action enters text into a specified element and clicks another element, both identified by their mmid. Ideal for seamless actions like submitting search queries, this integrated approach ensures superior performance over separate text entry and click commands. Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered. Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
+ 5. SOLVE_CAPTCHA[TEXT_ELEMENT_MMID, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION]- This actions solve a CAPTCHA challenge on a webpage. The action automatically processes the CAPTCHA, enters the solution into specified text element and clicks the specified submit button. The text element and button element are identified using their mmid. The WAIT_BEFORE_CLICK_EXECUTION prapameter allows for a delay before clicking, if needed. Returns Success if CAPTHCA is solved & submitted and false/error message, otherwise.  
+
 
  ## Planning Guidelines: ##
  1. If you know the direct URL, use it directly instead of searching for it (e.g. go to www.espn.com). Optimise the plan to avoid unnecessary steps.
@@ -390,6 +393,7 @@ Output:
  2. TYPE[MMID, CONTENT] - Single enter given text in the DOM element matching the given mmid attribute value. This will only enter the text and not press enter or anything else. Returns Success if text entry was successful or appropriate error message if text could not be entered.
  3. GOTO_URL[URL, TIMEOUT] - Opens a specified URL in the web browser instance. Returns url of the new page if successful or appropriate error message if the page could not be opened.
  4. ENTER_TEXT_AND_CLICK[TEXT_ELEMENT_MMID, TEXT_TO_ENTER, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION] - This action enters text into a specified element and clicks another element, both identified by their mmid. Ideal for seamless actions like submitting search queries, this integrated approach ensures superior performance over separate text entry and click commands. Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered. Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
+  5. SOLVE_CAPTCHA[TEXT_ELEMENT_MMID, CLICK_ELEMENT_MMID, WAIT_BEFORE_CLICK_EXECUTION]- This actions solve a CAPTCHA challenge on a webpage. The action automatically processes the CAPTCHA, enters the solution into specified text element and clicks the specified submit button. The text element and button element are identified using their mmid. The WAIT_BEFORE_CLICK_EXECUTION prapameter allows for a delay before clicking, if needed. Returns Success if CAPTHCA is solved & submitted and false/error message, otherwise. 
 
  ## Critic Guidelines: ##
 1. The Actor AI model was given some instruction to follow on how it should come up with the possible tasks. You job is to look at those instruction and see if the planner followed them.
@@ -457,6 +461,8 @@ Some basic information about the user: \n $basic_user_information
      Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered.
      Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
     """,
+    "SOLVE_CAPTCHA_PROMPT": """ 
+     This skill solves a CAPTCHA challenge on a webpage, enters the captcha & submits it. Perfer this skill whenever a captcha needs to be solved. Successfully completes when all three actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered.""",
     "GET_DOM_WITH_CONTENT_TYPE_PROMPT": """
      Retrieves the DOM of the current web site based on the given content type.
      The DOM representation returned contains items ordered in the same way they appear on the page. Keep this in mind when executing user requests that contain ordinals or numbered items.
@@ -496,6 +502,9 @@ Some basic information about the user: \n $basic_user_information
     3. A screenshot of the UI. This will be helpful in visually affirming if the objective has been achieved or not. 
 
     Your output will be an integer 1 or 0 - indicating objective success or failure respectively. 
+""",
+    "CAPTCHA_AGENT_PROMPT": """
+    Solve the captcha in the provided screenshot. Your output will be a single string captcha containing the solved captcha value
 """,
 }
 

@@ -20,6 +20,7 @@ class ActionType(str, Enum):
     TYPE = "TYPE"
     GOTO_URL = "GOTO_URL"
     ENTER_TEXT_AND_CLICK = "ENTER_TEXT_AND_CLICK"
+    SOLVE_CAPTCHA = "SOLVE_CAPTCHA"
     # GET_DOM_TEXT_CONTENT = "GET_DOM_TEXT_CONTENT"
     # GET_DOM_INPUT_FILEDS = "GET_DOM_INPUT_FILEDS"
     # GET_DOM_ALL_CONTENTS = "GET_DOM_ALL_CONTENTS"
@@ -228,3 +229,8 @@ class EvalAgentInput(BaseModel):
 
 class EvalAgentOutput(BaseModel):
     score: Score
+
+
+class CaptchaAgentOutput(BaseModel):
+    captcha: str
+    success: bool
