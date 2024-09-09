@@ -82,6 +82,23 @@ class EnterTextAndClickAction(BaseModel):
     )
 
 
+class SolveCaptcha(BaseModel):
+    type: Literal[ActionType.SOLVE_CAPTCHA] = Field(
+        description="""Solve captcha, enters the solve captcha into a specified eleement and clicks another element, both identified by their mmid. Ideal for captcha solving ,entering captcha and clicking submit.Successfully completes when all three actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered."""
+    )
+    text_element_mmid: int = Field(
+        description="The mmid number of the element where the captcha will be entered"
+    )
+
+    click_element_mmid: int = Field(
+        description="The mmid number of the element that will be clicked after the catcha entry to submit"
+    )
+
+    wait_before_click_execution: Optional[float] = Field(
+        description="Optional wait time in seconds before executing the click event logic"
+    )
+
+
 class Score(IntEnum):
     FAIL = 0
     PASS = 1
@@ -104,7 +121,11 @@ class Score(IntEnum):
 
 
 Action = Union[
-    ClickAction, TypeAction, GotoAction, EnterTextAndClickAction
+    ClickAction,
+    TypeAction,
+    GotoAction,
+    EnterTextAndClickAction,
+    SolveCaptcha,
     # GetDomTextAction,
     # GetDomInputsAction,
     # GetDomAllAction,
@@ -229,6 +250,10 @@ class EvalAgentInput(BaseModel):
 
 class EvalAgentOutput(BaseModel):
     score: Score
+
+
+class CaptchaAgentInput(BaseModel):
+    objective: str
 
 
 class CaptchaAgentOutput(BaseModel):

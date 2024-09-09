@@ -1,7 +1,5 @@
-from pydantic import BaseModel
-
 from agentq.core.agent.base import BaseAgent
-from agentq.core.models.models import CaptchaAgentOutput
+from agentq.core.models.models import CaptchaAgentInput, CaptchaAgentOutput
 from agentq.core.prompts.prompts import LLM_PROMPTS
 
 
@@ -11,7 +9,7 @@ class CaptchaAgent(BaseAgent):
         super().__init__(
             name=self.name,
             system_prompt=LLM_PROMPTS["CAPTCHA_AGENT_PROMPT"],
-            input_format=BaseModel,
+            input_format=CaptchaAgentInput,
             output_format=CaptchaAgentOutput,
             keep_message_history=False,
         )

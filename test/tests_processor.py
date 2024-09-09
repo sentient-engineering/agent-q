@@ -197,7 +197,9 @@ async def run_tests(
 
     if not test_file:
         test_file = os.path.join(
-            TEST_TASKS, "annotator_dry_run_webvoyager_tasks_30.json"
+            # TEST_TASKS, "annotator_dry_run_webvoyager_tasks_30.json"
+            TEST_TASKS,
+            "test.json",
         )
 
     logger.info(f"Loading test configurations from: {test_file}")
@@ -298,7 +300,7 @@ async def main():
     orchestrator = Orchestrator(state_to_agent_map=state_to_agent_map, eval_mode=True)
     await orchestrator.start()
     await run_tests(
-        orchestrator=orchestrator, min_task_index=2, max_task_index=3
+        orchestrator=orchestrator, min_task_index=3, max_task_index=31
     )  # Example: Run first 5 tests
     await orchestrator.shutdown()
 

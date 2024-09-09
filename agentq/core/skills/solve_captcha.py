@@ -1,10 +1,8 @@
 import inspect
 from typing import Annotated
 
-from pydantic import BaseModel
-
 from agentq.core.agent.captcha_agent import CaptchaAgent
-from agentq.core.models.models import CaptchaAgentOutput
+from agentq.core.models.models import CaptchaAgentInput, CaptchaAgentOutput
 from agentq.core.skills.enter_text_and_click import enter_text_and_click
 from agentq.core.skills.get_screenshot import get_screenshot
 from agentq.core.web_driver.playwright import PlaywrightManager
@@ -56,36 +54,46 @@ async def solve_captcha(
         logger.error("No active page found")
         raise ValueError("No active page found. OpenURL command opens a new page")
 
-    # Take ss for logging 
+    # Take ss for logging
     function_name = inspect.currentframe().f_code.co_name
     await browser_manager.highlight_element(text_selector, True)
     await browser_manager.take_screenshots(f"{function_name}_start", page=page)
 
-    screenshot = get_screenshot()
+    screenshot = await get_screenshot()
     captcha_agent = CaptchaAgent()
-    captcha_output: CaptchaAgentOutput = captcha_agent.run(BaseModel(), screenshot)
+    input: CaptchaAgentInput = CaptchaAgentInput(objective="Solve this captcha")
+
+    try:
+        captcha_output: CaptchaAgentOutput = await captcha_agent.run(input, screenshot)
+    except Exception as e:
+        await browser_manager.take_screenshots(f"{function_name}_end", page=page)
+        logger.error(f"Error in captcha_agent.run: {str(e)}")
+        return "Failed to solve the captcha. Error in running the Captcha Agent"
 
     if not captcha_output.success:
         await browser_manager.take_screenshots(f"{function_name}_end", page=page)
-        return "Failed to solve the captcha. Please try again"
+        return "Failed to solve the captcha. Captcha agent did not succeed."
 
-    success_msg = f"Success. Successfully solved the captcha {captcha_output.captcha}"
-
+    success_msg = (
+        f"Success. Successfully solved the captcha {captcha_output.captcha}.\n"
+    )
     result = {
         "summary_message": success_msg,
         "detailed_message": f"{success_msg}",
     }
 
     # enter text and click
-    enter_text_and_click_result = enter_text_and_click(
+    enter_text_and_click_result = await enter_text_and_click(
         text_selector=text_selector,
         text_to_enter=captcha_output.captcha,
         click_selector=click_selector,
         wait_before_click_execution=wait_before_click_execution,
     )
 
-    if not enter_text_and_click_result["summary_message"].startswith("Success"):
+    if not enter_text_and_click_result.startswith("Success"):
         await browser_manager.take_screenshots(f"{function_name}_end", page)
-        return f"Failed to enter text & click '{enter_text_and_click_result}' into element with text selector '{text_selector} & click selector {click_selector}'. Check that the selctor is valid."
+        return f"Solved the captcha but failed to enter it & click '{enter_text_and_click_result}' into element with text selector '{text_selector} & click selector {click_selector}'. Check that the selctor is valid."
 
-    result["detailed_message"] += f' {enter_text_and_click_result["detailed_message"]}'
+    result["detailed_message"] += f"{enter_text_and_click_result}"
+
+    return result["detailed_message"]

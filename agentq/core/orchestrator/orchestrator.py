@@ -125,7 +125,7 @@ class Orchestrator:
         elif current_state == State.BROWSE:
             await self._handle_browser_navigation()
         elif current_state == State.AGENTQ_BASE:
-            await self._handle_agnetq_base()
+            await self._handle_agentq_base()
         elif current_state == State.AGENTQ_ACTOR:
             await self._handle_agnetq_actor()
         elif current_state == State.AGENTQ_CRITIC:
@@ -173,7 +173,7 @@ class Orchestrator:
 
         print(f"{Fore.MAGENTA}Executor has completed a task.")
 
-    async def _handle_agnetq_base(self):
+    async def _handle_agentq_base(self):
         agent = self.state_to_agent_map[State.AGENTQ_BASE]
         self._print_memory_and_agent(agent.name)
 

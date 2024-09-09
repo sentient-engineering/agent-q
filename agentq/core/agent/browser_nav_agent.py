@@ -16,7 +16,7 @@ from agentq.core.skills.upload_file import upload_file
 class BrowserNavAgent(BaseAgent):
     def __init__(self):
         self.name = "executor"
-        
+
         super().__init__(
             name=self.name,
             system_prompt=LLM_PROMPTS["BROWSER_AGENT_PROMPT"],
@@ -41,5 +41,5 @@ class BrowserNavAgent(BaseAgent):
             (press_key_combination, LLM_PROMPTS["PRESS_KEY_COMBINATION_PROMPT"]),
             (extract_text_from_pdf, LLM_PROMPTS["EXTRACT_TEXT_FROM_PDF_PROMPT"]),
             (upload_file, LLM_PROMPTS["UPLOAD_FILE_PROMPT"]),
-            {solve_captcha, LLM_PROMPTS["SOLVE_CAPTCHA_PROMPT"]},
+            (solve_captcha, LLM_PROMPTS["SOLVE_CAPTCHA_PROMPT"]),
         ]

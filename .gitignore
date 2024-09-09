@@ -5,3 +5,4 @@ log_files/
 logs/
 .DS_STORE
 results/
+output.txt

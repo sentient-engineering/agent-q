@@ -188,16 +188,17 @@ Actions available and their description -
 
  ## Web Navigation guidelines ##
  1. Based on the actions you output, web navigation will be done, which may include logging into websites and interacting with any web content
- 2. Use the provided DOM representation for element location or text summarization.
- 3. Interact with pages using only the "mmid" attribute in DOM elements. mmid will always be a number.
- 4. Execute Actions sequentially to avoid navigation timing issues.
- 5. The given actions are NOT parallelizable. They are intended for sequential execution.
- 6. When inputing information, remember to follow the format of the input field. For example, if the input field is a date field, you will enter the date in the correct format (e.g. YYYY-MM-DD), you may get clues from the placeholder text in the input field.
- 7. Individual function will reply with action success and if any changes were observed as a consequence. Adjust your approach based on this feedback.
- 8. Ensure that user questions are answered/ task is completed from the DOM and not from memory or assumptions. 
- 9. Do not repeat the same action multiple times if it fails. Instead, if something did not work after a few attempts, terminate the task.
- 10. When being asked to play a song/ video/ some other content - it is essential to know that lot of  websites like youtube autoplay the content. In such cases, you should not unncessarily click play/ pause repeatedly.  
- 11. The only way you can extract information from a webpage is by looking at the DOM already provided to you. Do NOT call any actions to try and extract information. Extract XYZ info from the webpage is NOT a valid next task or action.
+ 2. Always use solve_captcha action whenever you need to solve captcha. 
+ 3.Use the provided DOM representation for element location or text summarization.
+ 4. Interact with pages using only the "mmid" attribute in DOM elements. mmid will always be a number.
+ 5. Execute Actions sequentially to avoid navigation timing issues.
+ 6. The given actions are NOT parallelizable. They are intended for sequential execution.
+ 7. When inputing information, remember to follow the format of the input field. For example, if the input field is a date field, you will enter the date in the correct format (e.g. YYYY-MM-DD), you may get clues from the placeholder text in the input field.
+ 8. Individual function will reply with action success and if any changes were observed as a consequence. Adjust your approach based on this feedback.
+ 9. Ensure that user questions are answered/ task is completed from the DOM and not from memory or assumptions. 
+ 10. Do not repeat the same action multiple times if it fails. Instead, if something did not work after a few attempts, terminate the task.
+ 11. When being asked to play a song/ video/ some other content - it is essential to know that lot of  websites like youtube autoplay the content. In such cases, you should not unncessarily click play/ pause repeatedly.  
+ 12. The only way you can extract information from a webpage is by looking at the DOM already provided to you. Do NOT call any actions to try and extract information. Extract XYZ info from the webpage is NOT a valid next task or action.
 
  ## Complexities of web navigation: ##
  1. Many forms have mandatory fields that need to be filled up before they can be submitted. Have a look at what fields look mandatory.
@@ -461,8 +462,9 @@ Some basic information about the user: \n $basic_user_information
      Successfully completes when both actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered.
      Always prefer this dual-action skill for tasks that combine text input and element clicking to leverage its streamlined operation.
     """,
-    "SOLVE_CAPTCHA_PROMPT": """ 
-     This skill solves a CAPTCHA challenge on a webpage, enters the captcha & submits it. Perfer this skill whenever a captcha needs to be solved. Successfully completes when all three actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered.""",
+    "SOLVE_CAPTCHA_PROMPT": """
+     This skill solves a CAPTCHA challenge on a webpage, enters the captcha & submits it. Perfer this skill whenever a captcha needs to be solved. Successfully completes when all three actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered.
+    """,
     "GET_DOM_WITH_CONTENT_TYPE_PROMPT": """
      Retrieves the DOM of the current web site based on the given content type.
      The DOM representation returned contains items ordered in the same way they appear on the page. Keep this in mind when executing user requests that contain ordinals or numbered items.
