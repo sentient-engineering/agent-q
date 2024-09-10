@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from typing import Sequence, Union
 
-from agentq.core.mcts.mcts import MCTSNode, MCTSResult
+from agentq.core.mcts.core.mcts import MCTSNode, MCTSResult
 from agentq.core.mcts.visualization.tree_snapshot import (
     EdgeData,
     EdgeId,

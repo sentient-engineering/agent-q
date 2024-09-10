@@ -8,7 +8,7 @@ from typing import Callable, Generic, Hashable, NamedTuple, Optional
 import numpy as np
 from tqdm import trange
 
-from agentq.core.mcts.base import (
+from agentq.core.mcts.core.base import (
     Action,
     Example,
     SearchAlgorithm,

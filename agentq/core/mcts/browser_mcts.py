@@ -11,8 +11,8 @@ from agentq.core.agent.agentq_actor import AgentQActor
 from agentq.core.agent.agentq_critic import AgentQCritic
 from agentq.core.agent.base import BaseAgent
 from agentq.core.agent.vision_agent import VisionAgent
-from agentq.core.mcts.base import Reasoner, SearchConfig, WorldModel
-from agentq.core.mcts.mcts import MCTS, MCTSResult
+from agentq.core.mcts.core.base import Reasoner, SearchConfig, WorldModel
+from agentq.core.mcts.core.mcts import MCTS, MCTSResult
 from agentq.core.mcts.visualization.visualizer_client import visualize
 from agentq.core.models.models import (
     Action,

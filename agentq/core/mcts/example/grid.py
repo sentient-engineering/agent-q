@@ -1,8 +1,8 @@
 import asyncio
 from typing import List, NamedTuple, Tuple
 
-from agentq.core.mcts.base import Reasoner, SearchConfig, WorldModel
-from agentq.core.mcts.mcts import MCTS, MCTSResult
+from agentq.core.mcts.core.base import Reasoner, SearchConfig, WorldModel
+from agentq.core.mcts.core.mcts import MCTS, MCTSResult
 
 
 class GridState(NamedTuple):

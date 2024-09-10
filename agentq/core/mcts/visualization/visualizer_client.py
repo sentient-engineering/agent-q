@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import requests
 
-from agentq.core.mcts.mcts import MCTSResult
+from agentq.core.mcts.core.mcts import MCTSResult
 from agentq.core.mcts.visualization.tree_log import TreeLog, TreeLogEncoder
 
 _API_DEFAULT_BASE_URL = "https://2wz3t0av30.execute-api.us-west-1.amazonaws.com/staging"
