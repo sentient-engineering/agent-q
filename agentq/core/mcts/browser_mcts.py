@@ -419,7 +419,7 @@ async def main():
     critic = AgentQCritic()
     vision = VisionAgent()
 
-    objective = "open the hindu cricket page"
+    objective = "play shape of you on youtube"
     print(f"{CYAN}[DEBUG] Objective set: {objective}{RESET}")
 
     browser_mcts_wrapper = BrowserMCTSWrapper(
