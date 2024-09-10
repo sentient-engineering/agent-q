@@ -1,12 +1,13 @@
 # agentq - advanced reasoning and learning for autonomous AI agents
 
 agentq utilises various kinds of agentic architectures to complete a task on the web reliably.
-it has 
+it has
+
 ```
 1. a planner <> navigator multi-agent architecutre
 2. a solo planner-actor agent
 3. an actor <> critic multi-agent architecture
-4. actor <> critic architecture + monte carlo tree search based reinforcement learning + dpo finetuning 
+4. actor <> critic architecture + monte carlo tree search based reinforcement learning + dpo finetuning
 ```
 
 this repo also contains an oss implementation of the research paper [agent q](https://arxiv.org/abs/2408.07199) - thus the name.
@@ -65,39 +66,57 @@ python -u -m agentq
  python -m test.tests_processor --orchestrator_type fsm
 ```
 
+### generate dpo pairs for RL
+
+````bash
+python -m agentq.core.mcts.browser_mcts
+```
+
 #### citations
 
 a bunch of amazing work in the space has inspired this.
 
-```
+````
+
 @misc{putta2024agentqadvancedreasoning,
-      title={Agent Q: Advanced Reasoning and Learning for Autonomous AI Agents},
-      author={Pranav Putta and Edmund Mills and Naman Garg and Sumeet Motwani and Chelsea Finn and Divyansh Garg and Rafael Rafailov},
-      year={2024},
-      eprint={2408.07199},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2408.07199},
+title={Agent Q: Advanced Reasoning and Learning for Autonomous AI Agents},
+author={Pranav Putta and Edmund Mills and Naman Garg and Sumeet Motwani and Chelsea Finn and Divyansh Garg and Rafael Rafailov},
+year={2024},
+eprint={2408.07199},
+archivePrefix={arXiv},
+primaryClass={cs.AI},
+url={https://arxiv.org/abs/2408.07199},
 }
+
 ```
 
 ```
+
 @article{he2024webvoyager,
-  title={WebVoyager: Building an End-to-End Web Agent with Large Multimodal Models},
-  author={He, Hongliang and Yao, Wenlin and Ma, Kaixin and Yu, Wenhao and Dai, Yong and Zhang, Hongming and Lan, Zhenzhong and Yu, Dong},
-  journal={arXiv preprint arXiv:2401.13919},
-  year={2024}
+title={WebVoyager: Building an End-to-End Web Agent with Large Multimodal Models},
+author={He, Hongliang and Yao, Wenlin and Ma, Kaixin and Yu, Wenhao and Dai, Yong and Zhang, Hongming and Lan, Zhenzhong and Yu, Dong},
+journal={arXiv preprint arXiv:2401.13919},
+year={2024}
 }
+
 ```
 
 ```
+
 @misc{abuelsaad2024-agente,
-      title={Agent-E: From Autonomous Web Navigation to Foundational Design Principles in Agentic Systems},
-      author={Tamer Abuelsaad and Deepak Akkil and Prasenjit Dey and Ashish Jagmohan and Aditya Vempaty and Ravi Kokku},
-      year={2024},
-      eprint={2407.13032},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2407.13032},
+title={Agent-E: From Autonomous Web Navigation to Foundational Design Principles in Agentic Systems},
+author={Tamer Abuelsaad and Deepak Akkil and Prasenjit Dey and Ashish Jagmohan and Aditya Vempaty and Ravi Kokku},
+year={2024},
+eprint={2407.13032},
+archivePrefix={arXiv},
+primaryClass={cs.AI},
+url={https://arxiv.org/abs/2407.13032},
 }
+
+```
+
+```
+
+```
+
 ```

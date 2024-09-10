@@ -259,3 +259,32 @@ class CaptchaAgentInput(BaseModel):
 class CaptchaAgentOutput(BaseModel):
     captcha: str
     success: bool
+
+
+# Monte-Carlo
+class BrowserState(BaseModel):
+    dom: str
+    url: str
+    objective: str
+    completed_tasks: Optional[List[TaskWithActions]]
+
+
+class BrowserAction(BaseModel):
+    task_with_action: TaskWithActions
+    rank: float = Field(description="The rank of this action, higher is better")
+
+
+class DPOState(BaseModel):
+    objective: str
+    dom: str
+
+
+class DPOAction(BaseModel):
+    description: str
+    action: Action
+
+
+class DPOPair(BaseModel):
+    state: DPOState
+    winning_action: DPOAction
+    losing_action: DPOAction

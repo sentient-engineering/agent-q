@@ -1,11 +1,9 @@
 import asyncio
+import json
 import sys
-import textwrap
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
-from pydantic import BaseModel
-from pydantic.fields import Field
 
 from agentq.core.agent.agentq_actor import AgentQActor
 from agentq.core.agent.agentq_critic import AgentQCritic
@@ -15,12 +13,16 @@ from agentq.core.mcts.core.base import Reasoner, SearchConfig, WorldModel
 from agentq.core.mcts.core.mcts import MCTS, MCTSResult
 from agentq.core.mcts.visualization.visualizer_client import visualize
 from agentq.core.models.models import (
-    Action,
     ActionType,
     AgentQActorInput,
     AgentQActorOutput,
     AgentQCriticInput,
     AgentQCriticOutput,
+    BrowserAction,
+    BrowserState,
+    DPOAction,
+    DPOPair,
+    DPOState,
     TaskWithActions,
     VisionInput,
     VisionOutput,
@@ -44,18 +46,6 @@ CYAN = "\033[96m"
 RESET = "\033[0m"
 
 
-class BrowserState(BaseModel):
-    dom: str
-    url: str
-    objective: str
-    completed_tasks: Optional[List[TaskWithActions]]
-
-
-class BrowserAction(BaseModel):
-    action: Action
-    rank: float = Field(description="The rank of this action, higher is better")
-
-
 class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
     def __init__(self, objective: str, vision: BaseAgent) -> None:
         super().__init__()
@@ -66,9 +56,15 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         )
 
     async def init_state(self) -> BrowserState:
+        # go to home page
+        playwright_manager = PlaywrightManager()
+        await playwright_manager.go_to_homepage()
+
+        # initialzie dom and url
         initial_dom = await self.get_current_dom()
         initial_url = await self.get_current_url()
         print(f"{GREEN}[DEBUG] Initial state created - URL: {initial_url}{RESET}")
+
         return BrowserState(
             dom=initial_dom,
             url=initial_url,
@@ -77,16 +73,11 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         )
 
     async def step(
-        self, state: BrowserState, action: BrowserAction
+        self, state: BrowserState, browser_action: BrowserAction
     ) -> Tuple[BrowserState, dict]:
-        print(f"{YELLOW}[DEBUG] Executing step with action: {action}{RESET}")
-        new_dom, new_url = await self.execute_browser_action(action)
-        current_task = TaskWithActions(
-            id=len(state.completed_tasks) + 1,
-            description=f"Executed action: {action.action.type}",
-            actions_to_be_performed=[action.action],
-            result="done",
-        )
+        print(f"{YELLOW}[DEBUG] Executing step with action: {browser_action}{RESET}")
+        new_dom, new_url = await self.execute_browser_action(browser_action)
+        current_task = browser_action.task_with_action
         new_completed_tasks = state.completed_tasks + [current_task]
         new_state = BrowserState(
             dom=new_dom,
@@ -102,34 +93,36 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         print(f"{CYAN}[DEBUG] Checking if state is terminal: {terminal}{RESET}")
         return terminal
 
-    async def execute_browser_action(self, action: BrowserAction) -> Tuple[str, str]:
-        print(f"{YELLOW}[DEBUG] Executing browser action: {action.action.type}{RESET}")
+    async def execute_browser_action(
+        self, browser_action: BrowserAction
+    ) -> Tuple[str, str]:
+        action = browser_action.task_with_action.actions_to_be_performed[0]
+        print(f"{YELLOW}[DEBUG] Executing browser action: {action.type}{RESET}")
 
-        if action.action.type == ActionType.GOTO_URL:
+        if action.type == ActionType.GOTO_URL:
             print(f"{CYAN}[DEBUG] Trying to go to url{RESET}")
-            await openurl(url=action.action.website, timeout=action.action.timeout or 0)
+            await openurl(url=action.website, timeout=action.timeout or 0)
             print(f"{CYAN}[DEBUG] Went to url{RESET}")
-        elif action.action.type == ActionType.TYPE:
+        elif action.type == ActionType.TYPE:
             entry = EnterTextEntry(
-                query_selector=f"[mmid='{action.action.mmid}']",
-                text=action.action.content,
+                query_selector=f"[mmid='{action.mmid}']",
+                text=action.content,
             )
             await entertext(entry)
             await wait_for_navigation()
             print(f"{CYAN}[DEBUG] Typed text into element{RESET}")
-        elif action.action.type == ActionType.CLICK:
+        elif action.type == ActionType.CLICK:
             await click(
-                selector=f"[mmid='{action.action.mmid}']",
-                wait_before_execution=action.action.wait_before_execution or 0,
+                selector=f"[mmid='{action.mmid}']",
+                wait_before_execution=action.wait_before_execution or 0,
             )
             print(f"{CYAN}[DEBUG] Clicked element{RESET}")
-        elif action.action.type == ActionType.ENTER_TEXT_AND_CLICK:
+        elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
             await enter_text_and_click(
-                text_selector=f"[mmid='{action.action.text_element_mmid}']",
-                text_to_enter=action.action.text_to_enter,
-                click_selector=f"[mmid='{action.action.click_element_mmid}']",
-                wait_before_click_execution=action.action.wait_before_click_execution
-                or 0,
+                text_selector=f"[mmid='{action.text_element_mmid}']",
+                text_to_enter=action.text_to_enter,
+                click_selector=f"[mmid='{action.click_element_mmid}']",
+                wait_before_click_execution=action.wait_before_click_execution or 0,
             )
             await wait_for_navigation()
             print(f"{CYAN}[DEBUG] Entered text and clicked element{RESET}")
@@ -180,10 +173,12 @@ class BrowserMCTSSearchConfig(SearchConfig[BrowserState, BrowserAction, str]):
         )
         actor_output: AgentQActorOutput = await self.actor.run(actor_input)
 
-        proposed_tasks: List[TaskWithActions] = actor_output.proposed_tasks
-        print(f"{CYAN}[DEBUG] Number of proposed tasks: {len(proposed_tasks)}{RESET}")
+        proposed_tasks_with_actions: List[TaskWithActions] = actor_output.proposed_tasks
+        print(
+            f"{CYAN}[DEBUG] Number of proposed tasks: {len(proposed_tasks_with_actions)}{RESET}"
+        )
 
-        ranked_actions = await self._rank_actions(state, proposed_tasks)
+        ranked_actions = await self._rank_actions(state, proposed_tasks_with_actions)
         print(f"{CYAN}[DEBUG] Number of sorted actions: {len(ranked_actions)}{RESET}")
 
         return ranked_actions
@@ -211,6 +206,7 @@ class BrowserMCTSSearchConfig(SearchConfig[BrowserState, BrowserAction, str]):
         remaining_tasks = tasks.copy()
         total_tasks = len(remaining_tasks)
 
+        print(f"{GREEN}[INFO] Sorting task via Critic now...")
         for iteration in range(total_tasks):
             if not remaining_tasks:
                 break
@@ -229,7 +225,7 @@ class BrowserMCTSSearchConfig(SearchConfig[BrowserState, BrowserAction, str]):
             if top_task and top_task.actions_to_be_performed:
                 rank = 1.0 / (iteration + 1)  # Higher rank for earlier iterations
                 ranked_actions.append(
-                    BrowserAction(action=top_task.actions_to_be_performed[0], rank=rank)
+                    BrowserAction(task_with_action=top_task, rank=rank)
                 )
 
                 # Remove the top task from remaining tasks
@@ -262,6 +258,7 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
         critic: BaseAgent,
         vision: BaseAgent,
         n_iterations: int = 1,
+        depth_limit: int = 3,
         exploration_weight: float = 1.0,
     ):
         world_model = BrowserWorldModel(objective, vision)
@@ -273,7 +270,7 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
             calc_q=np.mean,
             simulate_strategy="max",
             output_strategy="max_reward",
-            depth_limit=20,
+            depth_limit=depth_limit,
         )
         super().__init__(world_model, search_config, search_algo)
         self.dpo_pairs = []
@@ -284,16 +281,18 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
     async def __call__(self) -> MCTSResult:
         print(f"{YELLOW}[DEBUG] Starting MCTS search{RESET}")
         result = await super().__call__("")
-        self.generate_dpo_pairs(result)
         return result
 
-    def generate_dpo_pairs(self, result: MCTSResult):
+    @staticmethod
+    def generate_dpo_pairs(result: MCTSResult) -> List[DPOPair]:
+        dpo_pairs = []
+
         if result.trace_of_nodes is None or len(result.trace_of_nodes) < 2:
-            return
+            print(f"{RED}[DEBUG] No valid path found{RESET}")
+            return []
 
         print(f"{BLUE}[DEBUG] Printing rewards before generating dpo pairs")
-        for i in range(len(result.trace_of_nodes)):
-            node = result.trace_of_nodes[i]
+        for i, node in enumerate(result.trace_of_nodes):
             print(f"{BLUE} {node.state.url} - {node.Q}")
 
         for i in range(len(result.trace_of_nodes) - 1):
@@ -304,12 +303,29 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
                 winning_action = next_node.action
                 for child in current_node.children:
                     if child.action != winning_action:
-                        self.dpo_pairs.append(
-                            (current_node.state, winning_action, child.action)
+                        dpo_pair = DPOPair(
+                            state=DPOState(
+                                dom=current_node.state.dom[
+                                    :1000
+                                ],  # Truncate DOM to first 1000 characters
+                                objective=current_node.state.objective,
+                            ),
+                            winning_action=DPOAction(
+                                description=winning_action.task_with_action.description,
+                                action=winning_action.task_with_action.actions_to_be_performed[
+                                    0
+                                ],
+                            ),
+                            losing_action=DPOAction(
+                                description=child.action.task_with_action.description,
+                                action=child.action.task_with_action.actions_to_be_performed[
+                                    0
+                                ],
+                            ),
                         )
+                        dpo_pairs.append(dpo_pair)
 
-    def get_dpo_pairs(self):
-        return self.dpo_pairs
+        return dpo_pairs
 
     @staticmethod
     def print_result(result: MCTSResult):
@@ -322,42 +338,57 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
         for i, (state, action) in enumerate(zip(states, actions)):
             print(f"{CYAN}[DEBUG] Step {i}{RESET}")
             print(f"{CYAN}[DEBUG]  URL: {state.url}{RESET}")
-            print(f"{CYAN}[DEBUG]  Action: {action.action.type} - {action}{RESET}")
+            print(
+                f"{CYAN}[DEBUG]  Action Type: {action.task_with_action.actions_to_be_performed[0].type}{RESET}"
+            )
+            print(
+                f"{CYAN}[DEBUG]  Action Description: {action.task_with_action.description}{RESET}"
+            )
+            print(
+                f"{CYAN}[DEBUG]  Action Detail: {action.task_with_action} - {action}{RESET}"
+            )
 
         print(f"{GREEN}[DEBUG] Final URL: {states[-1].url}{RESET}")
         print(f"{GREEN}[DEBUG] Cumulative reward: {result.cum_reward}{RESET}")
         print(f"{GREEN}[DEBUG] Total steps: {len(actions)}{RESET}")
 
     @staticmethod
-    def print_dpo_pairs(dpo_pairs):
-        if not dpo_pairs:
-            print(f"{RED}No DPO pairs generated.{RESET}")
-            return
-
+    def print_dpo_pairs(dpo_pairs: List[DPOPair]):
         print(f"\n{MAGENTA}═══════════════ Generated DPO Pairs ═══════════════{RESET}")
-
-        for i, (state, winning_action, losing_action) in enumerate(dpo_pairs, 1):
+        for i, dpo_pair in enumerate(dpo_pairs, 1):
             print(f"\n{CYAN}╔══ Pair {i} ══╗{RESET}")
-
-            # Print state (URL and trimmed DOM)
             print(f"{YELLOW}┌─ State ─┐{RESET}")
-            print(f"{YELLOW}│ URL:{RESET} {state.url}")
-            trimmed_dom = textwrap.shorten(state.dom, width=100, placeholder="...")
+            trimmed_dom = (
+                dpo_pair.state.dom[:100] + "..."
+                if len(dpo_pair.state.dom) > 100
+                else dpo_pair.state.dom
+            )
             print(f"{YELLOW}│ DOM:{RESET} {trimmed_dom}")
-
-            # Print winning action
             print(f"{GREEN}┌─ Winning Action ─┐{RESET}")
-            print(f"{GREEN}│ Type:{RESET} {winning_action.action.type}")
-            print(f"{GREEN}│ Details:{RESET} {winning_action}")
-
-            # Print losing action
+            print(f"{GREEN}│ Description:{RESET} {dpo_pair.winning_action.description}")
+            print(f"{GREEN}│ Action Type:{RESET} {dpo_pair.winning_action.action.type}")
             print(f"{RED}┌─ Losing Action ─┐{RESET}")
-            print(f"{RED}│ Type:{RESET} {losing_action.action.type}")
-            print(f"{RED}│ Details:{RESET} {losing_action}")
-
+            print(f"{RED}│ Description:{RESET} {dpo_pair.losing_action.description}")
+            print(f"{RED}│ Action Type:{RESET} {dpo_pair.losing_action.action.type}")
             print(f"{CYAN}╚{'═' * (len('══ Pair X ══') - 2)}╝{RESET}")
-
         print(f"\n{MAGENTA}═══════════════ End of DPO Pairs ═══════════════{RESET}")
+
+    @staticmethod
+    async def write_dpo_pairs_to_file(dpo_pairs: List[DPOPair], filename: str):
+        """
+        Write the generated DPO pairs to a JSONL file in a format optimized for DPO training scripts.
+        """
+        with open(filename, "w") as f:
+            for pair in dpo_pairs:
+                dpo_entry = {
+                    "prompt": f"Objective: {pair.state.objective}\nCurrent DOM: {pair.state.dom[:1000]}...",
+                    "chosen": f"Action: {pair.winning_action.action.model_dump_json()}\nDescription: {pair.winning_action.description}",
+                    "rejected": f"Action: {pair.losing_action.action.model_dump_json()}\nDescription: {pair.losing_action.description}",
+                }
+                json.dump(dpo_entry, f)
+                f.write("\n")  # Add a newline for JSONL format
+
+        print(f"{GREEN}[INFO] DPO pairs written to {filename} in JSONL format{RESET}")
 
 
 async def wait_for_navigation(max_retries=3):
@@ -388,32 +419,40 @@ async def main():
     critic = AgentQCritic()
     vision = VisionAgent()
 
-    objective = "play shape of you on youtube"
+    objective = "open the hindu cricket page"
     print(f"{CYAN}[DEBUG] Objective set: {objective}{RESET}")
 
-    mcts_wrapper = BrowserMCTSWrapper(
+    browser_mcts_wrapper = BrowserMCTSWrapper(
         objective=objective,
         actor=actor,
         critic=critic,
         vision=vision,
-        n_iterations=30,
+        n_iterations=10,
+        depth_limit=6,
         exploration_weight=1.0,
     )
 
     print(f"{YELLOW}[DEBUG] Running MCTS wrapper{RESET}")
-    result = await mcts_wrapper()
-    visualize(result=result)
+    result = await browser_mcts_wrapper()
 
+    # Print results
     print(f"{CYAN}[DEBUG] Printing MCTS result{RESET}")
     BrowserMCTSWrapper.print_result(result)
 
-    dpo_pairs = mcts_wrapper.get_dpo_pairs()
+    # Tree visualization
+    visualize(result=result)
 
-    mcts_wrapper.print_dpo_pairs(dpo_pairs=dpo_pairs)
+    # Dpo pairs
+    dpo_pairs = BrowserMCTSWrapper.generate_dpo_pairs(result=result)
+    BrowserMCTSWrapper.print_dpo_pairs(dpo_pairs=dpo_pairs)
+    await BrowserMCTSWrapper.write_dpo_pairs_to_file(
+        dpo_pairs=dpo_pairs, filename="dpo_pairs.jsonl"
+    )
 
     await playwright_manager.stop_playwright()
 
 
+# Temp class to write output to a file
 class StreamToFile:
     def __init__(self, filename):
         self.file = open(filename, "w", buffering=1)
@@ -432,8 +471,8 @@ class StreamToFile:
 if __name__ == "__main__":
     print(f"{BLUE}[DEBUG] Script started{RESET}")
     output_stream = StreamToFile("output.txt")
-    sys.stdout = output_stream
-    sys.stderr = output_stream
+    # sys.stdout = output_stream
+    # sys.stderr = output_stream
     try:
         asyncio.run(main())
     finally:

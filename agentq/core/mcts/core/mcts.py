@@ -222,11 +222,10 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
     async def iterate(self, node: MCTSNode) -> list[MCTSNode]:
         path = self._select(node)
         print("Selected Node")
-        #print(path[-1])
-        #print(path[-1].state.url)
+        # print(path[-1])
+        # print(path[-1].state.url)
         # print(path[-1])
         if not self._is_terminal_with_depth_limit(path[-1]):
-            print("inside terminal")
             await self._expand(path[-1])
             await self._simulate(path)
         cum_reward = self._back_propagate(path)
@@ -285,6 +284,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
         return max(node.children, key=self._uct)
 
     async def _expand(self, node: MCTSNode):
+        print("Expanding node")
         if node.state is None:
             node.state, aux = await self.world_model.step(
                 node.parent.state, node.action
@@ -301,11 +301,10 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             return
 
         children = []
-        print("inside expand")
-        #print(node.state.url)
+        # print(node.state.url)
         # print(node)
         actions = await self.search_config.get_actions(node.state)
-        print("Inside actions")
+        print("Got possible actions")
         print(actions)
 
         for action in actions:
@@ -325,6 +324,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
         node.children = children
 
     async def _simulate(self, path: list[MCTSNode]):
+        print("Simulating the node")
         node = path[-1]
         while True:
             if node.state is None:
@@ -383,8 +383,8 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             self.n_iters, disable=self.disable_tqdm, desc="MCTS iteration", leave=False
         ):
             print(f"-----iter: {iter}----")
-            #print(self.root.url)
-            #print(self.root)
+            # print(self.root.url)
+            # print(self.root)
             path = await self.iterate(self.root)
             if self.output_trace_in_each_iter:
                 self.trace_in_each_iter.append(deepcopy(path))
