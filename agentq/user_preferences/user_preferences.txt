@@ -1,26 +1,7 @@
-Personal Info:
-First Name: Nischal
-Last Name: Jain
-Date of birth: 
-Pronouns: He/Him
-
-Email: 
-Expeted Salary: 5000000
-Occupation: Data Engineer
-Address: Indiranagr, Bengaluru
-Phone Number: 
-LinkedIn - https://linkedin.com/in/nischalj10
-
-
-Here are some of my preferences:
-Shopping Preferences: www.amazon.com
-Favorite news source: www.thehindu.com
-Favorite flight booking site to use with every flight related query: https://www.google.com/travel/flightsno
-Resume File to Upload Path = /Users/namanjain/Downloads/DummyResume.pdf
-My best project - checkout headless-ollama on google
-
-
-I am comfortable commuting to office.
-I have 4 years of experience in TypeScript, Node Js, Nextjs.
-I have work authorization for working in the USA.
-I have experience in cloud infrastructure, data warheouses.
+1. Your job is to find the relevant product asked by the user on a locally hosted ecommerce website https://686b-49-205-35-248.ngrok-free.app 
+2. Your search query should be small and should only have important keywords. In general, you should try to checkout the first couple of results shown in the search results. 
+3. Remember, a lot of custom filters like size, color, flavour, quantity etc are only available on the product page and the product title in search page may not exactly fit requirements but can loosely relate to the search query - so checkout first couple of search results that match most closely. 
+    Eg - you are asked to  buy strawberry biscuits from birtannia - but when you search britannia strawberry biscuits, you get search reuslt with chocloate flavoured britannia buiscuits. You should still click on it as there could be an option on the product page to change falvour from chocolate to strawberry because the brand is same and the product is same "braitannia and buiscuits"
+4. If you do not find the relevant product in first couple of search results pages, you should go back to the search page and try to search with a different query.
+5. Make sure to pay attention to all the attributes like size/ color/ quantity etc. mentioned in the user's query and select appropriate attributes on the product details page before buying it. 
+6. Ultimately - your task will only end when you click on the "Buy Now" button of the right product.

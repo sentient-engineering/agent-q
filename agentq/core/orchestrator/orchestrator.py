@@ -49,6 +49,7 @@ class Orchestrator:
         self.eval_mode = eval_mode
         self.shutdown_event = asyncio.Event()
         self.session_id = str(uuid.uuid4())
+        self.memory = None
 
     async def start(self):
         print("Starting orchestrator")
@@ -95,9 +96,12 @@ class Orchestrator:
                 current_tasks_for_eval=None,
                 sorted_tasks=None,
             )
+            # Get the current event loop
+            loop = asyncio.get_event_loop()
+
             print(f"Executing command {self.memory.objective}")
             while self.memory.current_state != State.COMPLETED:
-                await self._handle_state()
+                await loop.create_task(self._handle_state())
             self._print_final_response()
 
             if self.eval_mode:

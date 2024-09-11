@@ -89,6 +89,17 @@ url={https://arxiv.org/abs/2408.07199},
 }
 
 ```
+```
+@inproceedings{yao2022webshop,
+  bibtex_show = {true},
+  title = {WebShop: Towards Scalable Real-World Web Interaction with Grounded Language Agents},
+  author = {Yao, Shunyu and Chen, Howard and Yang, John and Narasimhan, Karthik},
+  booktitle = {ArXiv},
+  year = {preprint},
+  html = {https://arxiv.org/abs/2207.01206},
+  tag = {NLP}
+}
+```
 
 ```
 

@@ -29,7 +29,7 @@ class AgentQ(BaseAgent):
         system_prompt: str = LLM_PROMPTS["AGENTQ_BASE_PROMPT"]
 
         substitutions = {
-            "basic_user_information": ltm if ltm is not None else "",
+            "task_information": ltm if ltm is not None else "",
         }
 
         # Use safe_substitute to avoid KeyError

@@ -40,6 +40,9 @@ async def openurl(
         try:
             await browser_manager.take_screenshots(f"{function_name}_start", page)
 
+            # set extra headers for bypassing ngrok
+            await page.set_extra_http_headers({"User-Agent": "AgentQ-Sentient"})
+
             # Use a longer timeout for navigation
             await page.goto(
                 url, timeout=max(30000, timeout * 1000), wait_until="domcontentloaded"

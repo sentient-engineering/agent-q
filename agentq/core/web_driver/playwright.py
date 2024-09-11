@@ -272,12 +272,9 @@ class PlaywrightManager:
                 return page
         except Exception as e:
             logger.warn(f"Browser context was closed. Creating a new one. {e}")
-        except Exception as e:
-            logger.warn(f"Browser context was closed. Creating a new one. {e}")
             PlaywrightManager._browser_context = None
-            _browser: BrowserContext = await self.get_browser_context()  # type: ignore
-            page: Union[Page, None] = await self.get_current_page()
-            return page
+            await self.ensure_browser_context()
+            return await self.get_current_page()
 
     async def close_all_tabs(self, keep_first_tab: bool = True):
         """
