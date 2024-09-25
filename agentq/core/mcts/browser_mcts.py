@@ -94,7 +94,7 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
 
     async def is_terminal(self, state: BrowserState) -> bool:
         terminal = await is_terminal(state, self.vision)
-        print(f"{CYAN}[DEBUG] Checking if state is terminal: {terminal}{RESET}")
+        print(f"{CYAN}[DEBUG] is_terminal: {terminal}{RESET}")
         return terminal
 
     async def execute_browser_action(
@@ -118,7 +118,7 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         elif action.type == ActionType.CLICK:
             await click(
                 selector=f"[mmid='{action.mmid}']",
-                wait_before_execution=action.wait_before_execution or 1,
+                wait_before_execution=action.wait_before_execution or 2,
             )
             print(f"{CYAN}[DEBUG] Clicked element{RESET}")
         elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
@@ -126,7 +126,7 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
                 text_selector=f"[mmid='{action.text_element_mmid}']",
                 text_to_enter=action.text_to_enter,
                 click_selector=f"[mmid='{action.click_element_mmid}']",
-                wait_before_click_execution=action.wait_before_click_execution or 1.5,
+                wait_before_click_execution=action.wait_before_click_execution or 2,
             )
             # await wait_for_navigation()
             print(f"{CYAN}[DEBUG] Entered text and clicked element{RESET}")
@@ -452,7 +452,7 @@ async def main(objective: str = None, eval_mode: bool = False):
         actor=actor,
         critic=critic,
         vision=vision,
-        n_iterations=10,
+        n_iterations=3,
         depth_limit=6,
         exploration_weight=1.0,
     )
@@ -465,7 +465,7 @@ async def main(objective: str = None, eval_mode: bool = False):
     BrowserMCTSWrapper.print_result(result)
 
     # Tree visualization
-    visualize(result=result)
+    # visualize(result=result)
 
     # Dpo pairs
     dpo_pairs = BrowserMCTSWrapper.generate_dpo_pairs(result=result)
@@ -500,7 +500,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(
             main(
-                objective="play shape of you on youtube",
+                objective="go to football section of bbc",
                 eval_mode=False,
             )
         )

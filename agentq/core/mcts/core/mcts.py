@@ -8,8 +8,6 @@ from typing import Callable, Generic, Hashable, NamedTuple, Optional
 import numpy as np
 from tqdm import trange
 
-from agentq.core.web_driver.playwright import PlaywrightManager
-
 from agentq.core.mcts.core.base import (
     Action,
     Example,
@@ -19,6 +17,7 @@ from agentq.core.mcts.core.base import (
     Trace,
     WorldModel,
 )
+from agentq.core.web_driver.playwright import PlaywrightManager
 
 
 class MCTSNode(Generic[State, Action, Example]):
@@ -222,11 +221,11 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
         self.aggregator = aggregator
 
     async def iterate(self, node: MCTSNode) -> list[MCTSNode]:
-        path = self._select(node)
+        path = await self._select(node)
         print("Selected Node")
+        # print(path)
         # print(path[-1])
-        # print(path[-1].state.url)
-        # print(path[-1])
+        # print(path[-1].action)
         if not self._is_terminal_with_depth_limit(path[-1]):
             await self._expand(path[-1])
             await self._simulate(path)
@@ -249,7 +248,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
     def _is_terminal_with_depth_limit(self, node: MCTSNode):
         return node.is_terminal or node.depth >= self.depth_limit
 
-    def _select(self, node: MCTSNode) -> list[MCTSNode]:
+    async def _select(self, node: MCTSNode) -> list[MCTSNode]:
         path = []
         while True:
             path.append(node)
@@ -260,6 +259,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             ):
                 return path
             node = self._uct_select(node)
+            await self.world_model.step(node.parent.state, node.action)
 
     # def _uct(self, node: MCTSNode) -> float:
     #     return node.Q + self.w_exp * np.sqrt(
@@ -334,7 +334,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             if self._is_terminal_with_depth_limit(node) or len(node.children) == 0:
                 return
             fast_rewards = [child.fast_reward for child in node.children]
-            print("rewards")
+            print("fast rewards")
             print(fast_rewards)
             node = node.children[self.simulate_choice(fast_rewards)]
             path.append(node)
@@ -385,6 +385,9 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             self.n_iters, disable=self.disable_tqdm, desc="MCTS iteration", leave=False
         ):
             print(f"-----iter: {iter}----")
+            # start with home page for each iteration 
+            playwright_manager = PlaywrightManager()
+            await playwright_manager.go_to_homepage()
             path = await self.iterate(self.root)
             if self.output_trace_in_each_iter:
                 self.trace_in_each_iter.append(deepcopy(path))
