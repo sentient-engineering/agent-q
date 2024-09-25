@@ -385,11 +385,6 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             self.n_iters, disable=self.disable_tqdm, desc="MCTS iteration", leave=False
         ):
             print(f"-----iter: {iter}----")
-            # print(self.root.url)
-            # print(self.root)
-            # go to home page 
-            playwright_manager = PlaywrightManager()
-            await playwright_manager.go_to_homepage()
             path = await self.iterate(self.root)
             if self.output_trace_in_each_iter:
                 self.trace_in_each_iter.append(deepcopy(path))

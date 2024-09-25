@@ -12,7 +12,6 @@ def get_user_ltm():
     try:
         with open(user_preference_file) as file:
             user_pref = file.read()
-        logger.info(f"User preferences loaded from: {user_preference_file}")
         return user_pref
     except FileNotFoundError:
         logger.warning(f"User preference file not found: {user_preference_file}")

@@ -24,7 +24,9 @@ async def run_agent(command):
     await orchestrator.start()
     page: Page = await orchestrator.playwright_manager.get_current_page()
     await page.set_extra_http_headers({"User-Agent": "AgentQ-Bot"})
-    await page.goto("https://686b-49-205-35-248.ngrok-free.app/abc", timeout=30000)
+    await page.goto(
+        "http://localhost:3000/abc", wait_until="networkidle", timeout=30000
+    )
     result = await orchestrator.execute_command(command)
     return result
 

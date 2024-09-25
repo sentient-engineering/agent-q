@@ -84,7 +84,7 @@ class EnterTextAndClickAction(BaseModel):
 
 class SolveCaptcha(BaseModel):
     type: Literal[ActionType.SOLVE_CAPTCHA] = Field(
-        description="""Solve captcha, enters the solve captcha into a specified eleement and clicks another element, both identified by their mmid. Ideal for captcha solving ,entering captcha and clicking submit.Successfully completes when all three actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered."""
+        description="""Solve captcha, enters the solve captcha into a specified element and clicks another element, both identified by their mmid. Ideal for captcha solving ,entering captcha and clicking submit.Successfully completes when all three actions are executed without errors, returning True; otherwise, it provides False or an explanatory message of any failure encountered."""
     )
     text_element_mmid: int = Field(
         description="The mmid number of the element where the captcha will be entered"

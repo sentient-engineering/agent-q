@@ -62,7 +62,9 @@ class PlaywrightManager:
         self.set_take_screenshots(take_screenshots)
         self.set_screenshots_dir(screenshots_dir)
 
-    async def async_initialize(self, eval_mode: bool = False):
+    async def async_initialize(
+        self, eval_mode: bool = False, homepage: str = "https://google.com"
+    ):
         """
         Asynchronously initialize necessary components and handlers for the browser context.
         """
@@ -76,6 +78,8 @@ class PlaywrightManager:
 
         # Step 2: Deferred setup of handlers
         # await self.setup_handlers()
+
+        self._homepage = homepage
 
         # Step 3: Navigate to homepage
         await self.go_to_homepage()

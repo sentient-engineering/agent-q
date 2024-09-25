@@ -4,6 +4,8 @@ import sys
 from typing import List, Tuple
 
 import numpy as np
+from langsmith import traceable
+from playwright.async_api import Page
 
 from agentq.core.agent.agentq_actor import AgentQActor
 from agentq.core.agent.agentq_critic import AgentQCritic
@@ -46,6 +48,7 @@ CYAN = "\033[96m"
 RESET = "\033[0m"
 
 
+@traceable(run_type="chain", name="mcts")
 class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
     def __init__(self, objective: str, vision: BaseAgent) -> None:
         super().__init__()
@@ -57,6 +60,7 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
 
     async def init_state(self) -> BrowserState:
         # go to home page
+        print(f"{GREEN}[DEBUG] GOING TO INIT STATE HOMEPAGE{RESET}")
         playwright_manager = PlaywrightManager()
         await playwright_manager.go_to_homepage()
 
@@ -101,7 +105,7 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
 
         if action.type == ActionType.GOTO_URL:
             print(f"{CYAN}[DEBUG] Trying to go to url{RESET}")
-            await openurl(url=action.website, timeout=action.timeout or 0)
+            await openurl(url=action.website, timeout=action.timeout or 1)
             print(f"{CYAN}[DEBUG] Went to url{RESET}")
         elif action.type == ActionType.TYPE:
             entry = EnterTextEntry(
@@ -109,12 +113,12 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
                 text=action.content,
             )
             await entertext(entry)
-            await wait_for_navigation()
+            # await wait_for_navigation()
             print(f"{CYAN}[DEBUG] Typed text into element{RESET}")
         elif action.type == ActionType.CLICK:
             await click(
                 selector=f"[mmid='{action.mmid}']",
-                wait_before_execution=action.wait_before_execution or 0,
+                wait_before_execution=action.wait_before_execution or 1,
             )
             print(f"{CYAN}[DEBUG] Clicked element{RESET}")
         elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
@@ -122,9 +126,9 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
                 text_selector=f"[mmid='{action.text_element_mmid}']",
                 text_to_enter=action.text_to_enter,
                 click_selector=f"[mmid='{action.click_element_mmid}']",
-                wait_before_click_execution=action.wait_before_click_execution or 0,
+                wait_before_click_execution=action.wait_before_click_execution or 1.5,
             )
-            await wait_for_navigation()
+            # await wait_for_navigation()
             print(f"{CYAN}[DEBUG] Entered text and clicked element{RESET}")
 
         try:
@@ -143,13 +147,13 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         return new_dom, new_url
 
     async def get_current_dom(self) -> str:
-        await wait_for_navigation()
+        # await wait_for_navigation()
         dom = await get_dom_with_content_type(content_type="all_fields")
         print(f"{CYAN}[DEBUG] Got current DOM (length: {len(dom)}){RESET}")
         return str(dom)
 
     async def get_current_url(self) -> str:
-        await wait_for_navigation()
+        # await wait_for_navigation()
         url = await geturl()
         print(f"{CYAN}[DEBUG] Got current URL: {url}{RESET}")
         return url
@@ -245,7 +249,9 @@ async def is_terminal(state: BrowserState, vision: BaseAgent) -> bool:
     print(f"{YELLOW}[DEBUG] Checking if state is terminal{RESET}")
     screenshot = await get_screenshot()
     vision_input: VisionInput = VisionInput(objective=state.objective)
-    vision_output: VisionOutput = await vision.run(vision_input, screenshot)
+    vision_output: VisionOutput = await vision.run(
+        vision_input, screenshot, model="gpt-4o-2024-08-06"
+    )
     print(f"{YELLOW}[DEBUG] Output of vision LLM {vision_output.is_terminal}{RESET}")
     return vision_output.is_terminal
 
@@ -390,6 +396,18 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
 
         print(f"{GREEN}[INFO] DPO pairs written to {filename} in JSONL format{RESET}")
 
+    async def is_terminal(self, state: BrowserState) -> bool:
+        print(f"{YELLOW}[DEBUG] Checking if state is terminal{RESET}")
+        screenshot = await get_screenshot()
+        vision_input: VisionInput = VisionInput(objective=state.objective)
+        vision_output: VisionOutput = await self.vision.run(
+            vision_input, screenshot, model="gpt-4o-2024-08-06"
+        )
+        print(
+            f"{YELLOW}[DEBUG] Output of vision LLM {vision_output.is_terminal}{RESET}"
+        )
+        return vision_output.is_terminal
+
 
 async def wait_for_navigation(max_retries=3):
     for attempt in range(max_retries):
@@ -408,10 +426,18 @@ async def wait_for_navigation(max_retries=3):
     print(f"{RED}[DEBUG] Navigation failed after {max_retries} attempts{RESET}")
 
 
-async def main():
+async def main(objective: str = None, eval_mode: bool = False):
     print(f"{BLUE}Starting MCTS{RESET}")
     playwright_manager = PlaywrightManager()
-    await playwright_manager.async_initialize()
+
+    if not eval_mode:
+        await playwright_manager.async_initialize()
+    else:
+        await playwright_manager.async_initialize(
+            eval_mode=eval_mode, homepage="http://localhost:3000/abc"
+        )
+        page: Page = await playwright_manager.get_current_page()
+        await page.set_extra_http_headers({"User-Agent": "AgentQ-Bot"})
     print(f"{GREEN}Browser started and ready{RESET}")
 
     print(f"{BLUE}[DEBUG] Starting main function{RESET}")
@@ -419,7 +445,6 @@ async def main():
     critic = AgentQCritic()
     vision = VisionAgent()
 
-    objective = "play shape of you on youtube"
     print(f"{CYAN}[DEBUG] Objective set: {objective}{RESET}")
 
     browser_mcts_wrapper = BrowserMCTSWrapper(
@@ -448,8 +473,7 @@ async def main():
     await BrowserMCTSWrapper.write_dpo_pairs_to_file(
         dpo_pairs=dpo_pairs, filename="dpo_pairs.jsonl"
     )
-
-    await playwright_manager.stop_playwright()
+    return dpo_pairs
 
 
 # Temp class to write output to a file
@@ -474,7 +498,12 @@ if __name__ == "__main__":
     # sys.stdout = output_stream
     # sys.stderr = output_stream
     try:
-        asyncio.run(main())
+        asyncio.run(
+            main(
+                objective="play shape of you on youtube",
+                eval_mode=False,
+            )
+        )
     finally:
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__

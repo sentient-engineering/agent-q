@@ -397,14 +397,11 @@ class Orchestrator:
                 try:
                     if action.type == ActionType.GOTO_URL:
                         result = await openurl(
-                            url=action.website, timeout=action.timeout or 0
+                            url=action.website, timeout=action.timeout or 1
                         )
                         await page.wait_for_load_state("networkidle", timeout=10000)
                         print("Action - GOTO")
                     elif action.type == ActionType.TYPE:
-                        # await page.wait_for_selector(
-                        #     f"[mmid='{action.mmid}']", timeout=10000
-                        # )
                         entry = EnterTextEntry(
                             query_selector=f"[mmid='{action.mmid}']",
                             text=action.content,
@@ -412,29 +409,18 @@ class Orchestrator:
                         result = await entertext(entry)
                         print("Action - TYPE")
                     elif action.type == ActionType.CLICK:
-                        # await page.wait_for_selector(
-                        #     f"[mmid='{action.mmid}']", timeout=10000
-                        # )
                         result = await click(
                             selector=f"[mmid='{action.mmid}']",
-                            wait_before_execution=action.wait_before_execution or 0,
+                            wait_before_execution=action.wait_before_execution or 1,
                         )
                         print("Action - CLICK")
                     elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
-                        # await page.wait_for_selector(
-                        #     f"[mmid='{action.text_element_mmid}']",
-                        #     timeout=10000,
-                        # )
-                        # await page.wait_for_selector(
-                        #     f"[mmid='{action.click_element_mmid}']",
-                        #     timeout=10000,
-                        # )
                         result = await enter_text_and_click(
                             text_selector=f"[mmid='{action.text_element_mmid}']",
                             text_to_enter=action.text_to_enter,
                             click_selector=f"[mmid='{action.click_element_mmid}']",
                             wait_before_click_execution=action.wait_before_click_execution
-                            or 0,
+                            or 1.5,
                         )
                         print("Action - ENTER TEXT AND CLICK")
                     elif action.type == ActionType.SOLVE_CAPTCHA:
@@ -442,7 +428,7 @@ class Orchestrator:
                             text_selector=f"[mmid='{action.text_element_mmid}']",
                             click_selector=f"[mmid='{action.click_element_mmid}']",
                             wait_before_click_execution=action.wait_before_click_execution
-                            or 0,
+                            or 1,
                         )
                     else:
                         result = f"Unsupported action type: {action.type}"

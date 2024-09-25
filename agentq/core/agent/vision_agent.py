@@ -4,7 +4,7 @@ from agentq.core.prompts.prompts import LLM_PROMPTS
 
 
 class VisionAgent(BaseAgent):
-    def __init__(self):
+    def __init__(self, client: str = "openai"):
         system_prompt: str = LLM_PROMPTS["VISION_AGENT_PROMPT"]
         self.name = "vision"
 
@@ -14,4 +14,5 @@ class VisionAgent(BaseAgent):
             input_format=VisionInput,
             output_format=VisionOutput,
             keep_message_history=False,
+            client=client,
         )

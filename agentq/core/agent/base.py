@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Callable, List, Optional, Tuple, Type
 
 import instructor
@@ -22,6 +23,7 @@ class BaseAgent:
         output_format: Type[BaseModel],
         tools: Optional[List[Tuple[Callable, str]]] = None,
         keep_message_history: bool = True,
+        client: str = "openai",
     ):
         # Metdata
         self.agent_name = name
@@ -43,15 +45,13 @@ class BaseAgent:
         litellm.set_verbose = True
 
         # Llm client
-        # self.client = instructor.from_litellm(
-        #     completion,
-        #     mode=Mode.JSON,
-        # )
-        self.client = openai.Client()
-        # self.client = openai.OpenAI(
-        #     base_url="https://api.together.xyz/v1",
-        #     api_key=os.environ["TOGETHER_API_KEY"],
-        # )
+        if client == "openai":
+            self.client = openai.Client()
+        elif client == "together":
+            self.client = openai.OpenAI(
+                base_url="https://api.together.xyz/v1",
+                api_key=os.environ["TOGETHER_API_KEY"],
+            )
 
         self.client = instructor.from_openai(self.client, mode=Mode.JSON)
 
@@ -71,7 +71,12 @@ class BaseAgent:
 
     @traceable(run_type="chain", name="agent_run")
     async def run(
-        self, input_data: BaseModel, screenshot: str = None, session_id: str = None
+        self,
+        input_data: BaseModel,
+        screenshot: str = None,
+        session_id: str = None,
+        # model: str = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+        model: str = "gpt-4o-2024-08-06",
     ) -> BaseModel:
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
@@ -116,7 +121,7 @@ class BaseAgent:
                 }
             )
 
-        # print(self.messages)
+        # logger.info(self.messages)
 
         # TODO: add a max_turn here to prevent a inifinite fallout
         while True:
@@ -125,22 +130,18 @@ class BaseAgent:
             # 2. remove the else block as JSON mode in instrutor won't allow us to pass in tools.
             if len(self.tools_list) == 0:
                 response = self.client.chat.completions.create(
-                    model="gpt-4o-2024-08-06",
+                    model=model,
+                    # model="gpt-4o-2024-08-06",
                     # model="gpt-4o-mini",
                     # model="groq/llama3-groq-70b-8192-tool-use-preview",
-                    # model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+                    # model="xlam-1b-fc-r",
                     messages=self.messages,
                     response_model=self.output_format,
-                    max_retries=3,
-                    # logger_fn=logger,
+                    max_retries=4,
                 )
             else:
-                # print(self.tools_list)
                 response = self.client.chat.completions.create(
-                    model="gpt-4o-2024-08-06",
-                    # model="gpt-4o-mini",
-                    # model="groq/llama3-groq-70b-8192-tool-use-preview",
-                    # model="together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                    model=model,
                     messages=self.messages,
                     response_model=self.output_format,
                     tool_choice="auto",
@@ -168,7 +169,6 @@ class BaseAgent:
                 raise TypeError(
                     f"Expected response_message to be of type {self.output_format.__name__}, but got {type(response).__name__}"
                 )
-
             return response
 
     async def _append_tool_response(self, tool_call):
