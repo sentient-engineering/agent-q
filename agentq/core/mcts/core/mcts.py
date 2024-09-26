@@ -230,6 +230,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             await self._expand(path[-1])
             await self._simulate(path)
         cum_reward = self._back_propagate(path)
+        #self._print_tree(self.root)
         if (
             self.output_strategy == "max_iter"
             and path[-1].is_terminal
@@ -247,6 +248,14 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
 
     def _is_terminal_with_depth_limit(self, node: MCTSNode):
         return node.is_terminal or node.depth >= self.depth_limit
+
+    def _print_tree(self, node: MCTSNode, depth: int = 0):
+        indent = "  " * depth
+        url = node.state.url if node.state and hasattr(node.state, "url") else "N/A"
+        print(f"{indent}URL: {url}, Q: {node.Q:.4f}, N: {node.N}")
+        if node.children:
+            for child in node.children:
+                self._print_tree(child, depth + 1)
 
     async def _select(self, node: MCTSNode) -> list[MCTSNode]:
         path = []
@@ -351,8 +360,14 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
     def _back_propagate(self, path: list[MCTSNode]):
         reward = path[-1].reward
         for node in reversed(path):
+            print(node.state.url)
+            print(node.Q)
+            print(node.N)
             node.Q = (node.Q * node.N + reward) / (node.N + 1)
             node.N += 1
+            print("--updated--")
+            print(node.Q)
+            print(node.N)
         return path[0].Q  # Return the root node's updated Q-value
 
     def _dfs_max_reward(self, path: list[MCTSNode]) -> tuple[float, list[MCTSNode]]:
@@ -385,7 +400,7 @@ class MCTS(SearchAlgorithm, Generic[State, Action, Example]):
             self.n_iters, disable=self.disable_tqdm, desc="MCTS iteration", leave=False
         ):
             print(f"-----iter: {iter}----")
-            # start with home page for each iteration 
+            # start with home page for each iteration
             playwright_manager = PlaywrightManager()
             await playwright_manager.go_to_homepage()
             path = await self.iterate(self.root)

@@ -147,7 +147,7 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         return new_dom, new_url
 
     async def get_current_dom(self) -> str:
-        # await wait_for_navigation()
+        await wait_for_navigation()
         dom = await get_dom_with_content_type(content_type="all_fields")
         print(f"{CYAN}[DEBUG] Got current DOM (length: {len(dom)}){RESET}")
         return str(dom)
@@ -241,7 +241,7 @@ class BrowserMCTSSearchConfig(SearchConfig[BrowserState, BrowserAction, str]):
                     f"{MAGENTA}[DEBUG] Warning: No valid top task found in iteration {iteration}. Skipping.{RESET}"
                 )
 
-        print(f"{CYAN}[DEBUG] Sorted actions: {ranked_actions}{RESET}")
+        print(f"{CYAN}[DEBUG] Sorted actions.")
         return ranked_actions
 
 
@@ -264,7 +264,7 @@ class BrowserMCTSWrapper(Reasoner[BrowserState, BrowserAction, str]):
         critic: BaseAgent,
         vision: BaseAgent,
         n_iterations: int = 1,
-        depth_limit: int = 3,
+        depth_limit: int = 1,
         exploration_weight: float = 1.0,
     ):
         world_model = BrowserWorldModel(objective, vision)
@@ -452,7 +452,7 @@ async def main(objective: str = None, eval_mode: bool = False):
         actor=actor,
         critic=critic,
         vision=vision,
-        n_iterations=3,
+        n_iterations=10,
         depth_limit=6,
         exploration_weight=1.0,
     )
@@ -500,7 +500,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(
             main(
-                objective="go to football section of bbc",
+                objective="go to football page on bbc",
                 eval_mode=False,
             )
         )
