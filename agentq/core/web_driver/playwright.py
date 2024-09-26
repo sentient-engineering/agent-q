@@ -1,3 +1,4 @@
+import os
 import tempfile
 import time
 from typing import List, Union
@@ -190,7 +191,7 @@ class PlaywrightManager:
                 )
             else:
                 browser = await PlaywrightManager._playwright.chromium.connect_over_cdp(
-                    "http://localhost:9222"
+                    "http://localhost:{}".format(int(os.getenv("CHROME_PORT", "9222")))
                 )
                 PlaywrightManager._browser_context = browser.contexts[0]
 

@@ -23,7 +23,7 @@ class BaseAgent:
         output_format: Type[BaseModel],
         tools: Optional[List[Tuple[Callable, str]]] = None,
         keep_message_history: bool = True,
-        client: str = "openai",
+        client: str = None
     ):
         # Metdata
         self.agent_name = name
@@ -44,13 +44,17 @@ class BaseAgent:
         litellm.logging = True
         litellm.set_verbose = True
 
+        # Base URL & Model
+        base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        api_key = os.getenv("OPENAI_API_KEY", "")
+
         # Llm client
-        if client == "openai":
+        if base_url == "https://api.openai.com/v1":
             self.client = openai.Client()
-        elif client == "together":
+        else:
             self.client = openai.OpenAI(
-                base_url="https://api.together.xyz/v1",
-                api_key=os.environ["TOGETHER_API_KEY"],
+                base_url=base_url,
+                api_key=api_key,
             )
 
         self.client = instructor.from_openai(self.client, mode=Mode.JSON)
@@ -75,8 +79,7 @@ class BaseAgent:
         input_data: BaseModel,
         screenshot: str = None,
         session_id: str = None,
-        # model: str = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-        model: str = "gpt-4o-2024-08-06",
+        model: str = os.getenv("MODEL_NAME", "gpt-4o-mini"),
     ) -> BaseModel:
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
@@ -131,10 +134,6 @@ class BaseAgent:
             if len(self.tools_list) == 0:
                 response = self.client.chat.completions.create(
                     model=model,
-                    # model="gpt-4o-2024-08-06",
-                    # model="gpt-4o-mini",
-                    # model="groq/llama3-groq-70b-8192-tool-use-preview",
-                    # model="xlam-1b-fc-r",
                     messages=self.messages,
                     response_model=self.output_format,
                     max_retries=4,
