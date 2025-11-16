@@ -180,11 +180,12 @@ class PlaywrightManager:
                 PlaywrightManager._browser_context = await PlaywrightManager._playwright.chromium.launch_persistent_context(
                     new_user_dir,
                     channel="chrome",
-                    headless=self.isheadless,
+                    headless=True,
                     args=[
                         "--disable-blink-features=AutomationControlled",
                         "--disable-session-crashed-bubble",  # disable the restore session bubble
                         "--disable-infobars",  # disable informational popups,
+                        "--headless",
                     ],
                     no_viewport=True,
                 )

@@ -1,12 +1,7 @@
 import json
-import os
 from typing import Callable, List, Optional, Tuple, Type
 
-import instructor
-import instructor.patch
-import litellm
-import openai
-from instructor import Mode
+import ollama
 from langsmith import traceable
 from pydantic import BaseModel
 
@@ -23,7 +18,6 @@ class BaseAgent:
         output_format: Type[BaseModel],
         tools: Optional[List[Tuple[Callable, str]]] = None,
         keep_message_history: bool = True,
-        client: str = "openai",
     ):
         # Metdata
         self.agent_name = name
@@ -40,20 +34,8 @@ class BaseAgent:
         self.input_format = input_format
         self.output_format = output_format
 
-        # Set global configurations for litellm
-        litellm.logging = True
-        litellm.set_verbose = True
-
         # Llm client
-        if client == "openai":
-            self.client = openai.Client()
-        elif client == "together":
-            self.client = openai.OpenAI(
-                base_url="https://api.together.xyz/v1",
-                api_key=os.environ["TOGETHER_API_KEY"],
-            )
-
-        self.client = instructor.from_openai(self.client, mode=Mode.JSON)
+        self.client = ollama.Client(host="http://localhost:11434")
 
         # Tools
         self.tools_list = []
@@ -75,8 +57,7 @@ class BaseAgent:
         input_data: BaseModel,
         screenshot: str = None,
         session_id: str = None,
-        # model: str = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-        model: str = "gpt-4o-2024-08-06",
+        model: str = "qwen3:8b",
     ) -> BaseModel:
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
@@ -121,55 +102,18 @@ class BaseAgent:
                 }
             )
 
-        # logger.info(self.messages)
+        response = self.client.chat(
+            model=model,
+            messages=self.messages,
+            options={"temperature": 0},
+        )
 
-        # TODO: add a max_turn here to prevent a inifinite fallout
-        while True:
-            # TODO:
-            # 1. exeception handling while calling the client
-            # 2. remove the else block as JSON mode in instrutor won't allow us to pass in tools.
-            if len(self.tools_list) == 0:
-                response = self.client.chat.completions.create(
-                    model=model,
-                    # model="gpt-4o-2024-08-06",
-                    # model="gpt-4o-mini",
-                    # model="groq/llama3-groq-70b-8192-tool-use-preview",
-                    # model="xlam-1b-fc-r",
-                    messages=self.messages,
-                    response_model=self.output_format,
-                    max_retries=4,
-                )
-            else:
-                response = self.client.chat.completions.create(
-                    model=model,
-                    messages=self.messages,
-                    response_model=self.output_format,
-                    tool_choice="auto",
-                    tools=self.tools_list,
-                )
+        print(f"Ollama response: {response}")
 
-            # instructor directly outputs response.choices[0].message. so we will do response_message = response
-            # response_message = response.choices[0].message
+        response_content = response["message"]["content"]
+        parsed_response = self.output_format.model_validate_json(response_content)
 
-            # instructor does not support funciton in JSON mode
-            # if response_message.tool_calls:
-            #     tool_calls = response_message.tool_calls
-
-            # if tool_calls:
-            #     self.messages.append(response_message)
-            #     for tool_call in tool_calls:
-            #         await self._append_tool_response(tool_call)
-            #     continue
-
-            # parsed_response_content: self.output_format = response_message.parsed
-
-            try:
-                assert isinstance(response, self.output_format)
-            except AssertionError:
-                raise TypeError(
-                    f"Expected response_message to be of type {self.output_format.__name__}, but got {type(response).__name__}"
-                )
-            return response
+        return parsed_response
 
     async def _append_tool_response(self, tool_call):
         function_name = tool_call.function.name
@@ -177,7 +121,6 @@ class BaseAgent:
         function_args = json.loads(tool_call.function.arguments)
         try:
             function_response = await function_to_call(**function_args)
-            # print(function_response)
             self.messages.append(
                 {
                     "tool_call_id": tool_call.id,

@@ -1,0 +1,686 @@
+Starting orchestrator
+Starting in eval mode True
+Browser started and ready
+Progress: [>                                                 ] 0/29 (0.00%)Executing command find nothing phone 2 on amazon and sort the results by best seller
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command find nothing phone 2 on amazon and sort the results by best seller: [Errno 111] Connection refused
+
++--------------+-----------+--------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                             | Status   |   Time Taken (s) |
++==============+===========+====================================================================+==========+==================+
+|            1 |         0 | find nothing phone 2 on amazon and sort the results by best seller | Fail     |             4.44 |
++--------------+-----------+--------------------------------------------------------------------+----------+------------------+
+Progress: [>                                                 ] 1/29 (3.45%)Executing command find nothing phone 2 on amazon and sort the results by price highest first
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command find nothing phone 2 on amazon and sort the results by price highest first: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                     | Status   |   Time Taken (s) |
++==============+===========+============================================================================+==========+==================+
+|            2 |         1 | find nothing phone 2 on amazon and sort the results by price highest first | Fail     |             4.35 |
++--------------+-----------+----------------------------------------------------------------------------+----------+------------------+
+Progress: [-->                                               ] 2/29 (6.90%)Executing command find soccer on espn.com
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command find soccer on espn.com: [Errno 111] Connection refused
+
++--------------+-----------+-------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                  | Status   |   Time Taken (s) |
++==============+===========+=========================+==========+==================+
+|            3 |         2 | find soccer on espn.com | Fail     |             4.41 |
++--------------+-----------+-------------------------+----------+------------------+
+Progress: [---->                                             ] 3/29 (10.34%)Executing command What is the price of Rabbit R1 on https://www.rabbit.tech/?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command What is the price of Rabbit R1 on https://www.rabbit.tech/?: [Errno 111] Connection refused
+
++--------------+-----------+-------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                      | Status   |   Time Taken (s) |
++==============+===========+=============================================================+==========+==================+
+|            4 |         3 | What is the price of Rabbit R1 on https://www.rabbit.tech/? | Fail     |             4.35 |
++--------------+-----------+-------------------------------------------------------------+----------+------------------+
+Progress: [----->                                            ] 4/29 (13.79%)Executing command what is the largest organ of the body?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command what is the largest organ of the body?: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                 | Status   |   Time Taken (s) |
++==============+===========+========================================+==========+==================+
+|            5 |         4 | what is the largest organ of the body? | Fail     |             4.39 |
++--------------+-----------+----------------------------------------+----------+------------------+
+Progress: [------->                                          ] 5/29 (17.24%)Executing command What are the names of the continents?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command What are the names of the continents?: [Errno 111] Connection refused
+
++--------------+-----------+---------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                | Status   |   Time Taken (s) |
++==============+===========+=======================================+==========+==================+
+|            6 |         5 | What are the names of the continents? | Fail     |             4.35 |
++--------------+-----------+---------------------------------------+----------+------------------+
+Progress: [--------->                                        ] 6/29 (20.69%)Executing command Find the phone number for Center for Student Life from NYU's site
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Find the phone number for Center for Student Life from NYU's site: [Errno 111] Connection refused
+
++--------------+-----------+-------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                            | Status   |   Time Taken (s) |
++==============+===========+===================================================================+==========+==================+
+|            7 |         6 | Find the phone number for Center for Student Life from NYU's site | Fail     |             4.09 |
++--------------+-----------+-------------------------------------------------------------------+----------+------------------+
+Progress: [----------->                                      ] 7/29 (24.14%)Executing command Find the phone number for Admissions from MIT's site
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Find the phone number for Admissions from MIT's site: [Errno 111] Connection refused
+
++--------------+-----------+------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                               | Status   |   Time Taken (s) |
++==============+===========+======================================================+==========+==================+
+|            8 |         7 | Find the phone number for Admissions from MIT's site | Fail     |             4.13 |
++--------------+-----------+------------------------------------------------------+----------+------------------+
+Progress: [------------>                                     ] 8/29 (27.59%)Executing command Go to MIT and navigate to Alumni website
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Go to MIT and navigate to Alumni website: [Errno 111] Connection refused
+
++--------------+-----------+------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                   | Status   |   Time Taken (s) |
++==============+===========+==========================================+==========+==================+
+|            9 |         8 | Go to MIT and navigate to Alumni website | Fail     |             4.08 |
++--------------+-----------+------------------------------------------+----------+------------------+
+Progress: [-------------->                                   ] 9/29 (31.03%)Executing command Go to youtube
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Go to youtube: [Errno 111] Connection refused
+
++--------------+-----------+---------------+----------+------------------+
+|   Test Index |   Task ID | Intent        | Status   |   Time Taken (s) |
++==============+===========+===============+==========+==================+
+|           10 |         9 | Go to youtube | Fail     |             4.08 |
++--------------+-----------+---------------+----------+------------------+
+Progress: [---------------->                                 ] 10/29 (34.48%)Executing command Go to national geographic
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Go to national geographic: [Errno 111] Connection refused
+
++--------------+-----------+---------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                    | Status   |   Time Taken (s) |
++==============+===========+===========================+==========+==================+
+|           11 |        10 | Go to national geographic | Fail     |             4.08 |
++--------------+-----------+---------------------------+----------+------------------+
+Progress: [----------------->                                ] 11/29 (37.93%)Executing command search the web for the library of Alexandria
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command search the web for the library of Alexandria: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                       | Status   |   Time Taken (s) |
++==============+===========+==============================================+==========+==================+
+|           12 |        11 | search the web for the library of Alexandria | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------+----------+------------------+
+Progress: [------------------->                              ] 12/29 (41.38%)Executing command Go to amazon.com
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Go to amazon.com: [Errno 111] Connection refused
+
++--------------+-----------+------------------+----------+------------------+
+|   Test Index |   Task ID | Intent           | Status   |   Time Taken (s) |
++==============+===========+==================+==========+==================+
+|           13 |        12 | Go to amazon.com | Fail     |             4.08 |
++--------------+-----------+------------------+----------+------------------+
+Progress: [--------------------->                            ] 13/29 (44.83%)Executing command Find funny turtle videos on YouTube and play the first one
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Find funny turtle videos on YouTube and play the first one: [Errno 111] Connection refused
+
++--------------+-----------+------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                     | Status   |   Time Taken (s) |
++==============+===========+============================================================+==========+==================+
+|           14 |        13 | Find funny turtle videos on YouTube and play the first one | Fail     |             4.08 |
++--------------+-----------+------------------------------------------------------------+----------+------------------+
+Progress: [----------------------->                          ] 14/29 (48.28%)Executing command Put the video in full screen
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Put the video in full screen: [Errno 111] Connection refused
+
++--------------+-----------+------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                       | Status   |   Time Taken (s) |
++==============+===========+==============================+==========+==================+
+|           15 |        14 | Put the video in full screen | Fail     |             4.19 |
++--------------+-----------+------------------------------+----------+------------------+
+Progress: [------------------------>                         ] 15/29 (51.72%)Executing command Mute video
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Mute video: [Errno 111] Connection refused
+
++--------------+-----------+------------+----------+------------------+
+|   Test Index |   Task ID | Intent     | Status   |   Time Taken (s) |
++==============+===========+============+==========+==================+
+|           16 |        15 | Mute video | Fail     |             4.18 |
++--------------+-----------+------------+----------+------------------+
+Progress: [-------------------------->                       ] 16/29 (55.17%)Executing command find Nelson Mandela on britanica
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command find Nelson Mandela on britanica: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                           | Status   |   Time Taken (s) |
++==============+===========+==================================+==========+==================+
+|           17 |        16 | find Nelson Mandela on britanica | Fail     |             4.08 |
++--------------+-----------+----------------------------------+----------+------------------+
+Progress: [---------------------------->                     ] 17/29 (58.62%)Executing command go to the travel section on BBC
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command go to the travel section on BBC: [Errno 111] Connection refused
+
++--------------+-----------+---------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                          | Status   |   Time Taken (s) |
++==============+===========+=================================+==========+==================+
+|           18 |        17 | go to the travel section on BBC | Fail     |             4.08 |
++--------------+-----------+---------------------------------+----------+------------------+
+Progress: [------------------------------>                   ] 18/29 (62.07%)Executing command Find the shortest driving distance between JFK and LGA airports in miles
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Find the shortest driving distance between JFK and LGA airports in miles: [Errno 111] Connection refused
+
++--------------+-----------+--------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                   | Status   |   Time Taken (s) |
++==============+===========+==========================================================================+==========+==================+
+|           19 |        18 | Find the shortest driving distance between JFK and LGA airports in miles | Fail     |             4.32 |
++--------------+-----------+--------------------------------------------------------------------------+----------+------------------+
+Progress: [------------------------------->                  ] 19/29 (65.52%)Executing command Find the distance from JFK to LGA
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Find the distance from JFK to LGA: [Errno 111] Connection refused
+
++--------------+-----------+-----------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                            | Status   |   Time Taken (s) |
++==============+===========+===================================+==========+==================+
+|           20 |        19 | Find the distance from JFK to LGA | Fail     |             4.56 |
++--------------+-----------+-----------------------------------+----------+------------------+
+Progress: [--------------------------------->                ] 20/29 (68.97%)Executing command Find the shortest driving distance between CMU and MIT in miles
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Find the shortest driving distance between CMU and MIT in miles: [Errno 111] Connection refused
+
++--------------+-----------+-----------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                          | Status   |   Time Taken (s) |
++==============+===========+=================================================================+==========+==================+
+|           21 |        20 | Find the shortest driving distance between CMU and MIT in miles | Fail     |             4.09 |
++--------------+-----------+-----------------------------------------------------------------+----------+------------------+
+Progress: [----------------------------------->              ] 21/29 (72.41%)Executing command What are the top restaurants near MIT?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command What are the top restaurants near MIT?: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                 | Status   |   Time Taken (s) |
++==============+===========+========================================+==========+==================+
+|           22 |        21 | What are the top restaurants near MIT? | Fail     |             4.08 |
++--------------+-----------+----------------------------------------+----------+------------------+
+Progress: [------------------------------------>             ] 22/29 (75.86%)Executing command Filter by done issues
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Filter by done issues: [Errno 111] Connection refused
+
++--------------+-----------+-----------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                | Status   |   Time Taken (s) |
++==============+===========+=======================+==========+==================+
+|           23 |        22 | Filter by done issues | Fail     |             6.04 |
++--------------+-----------+-----------------------+----------+------------------+
+Progress: [-------------------------------------->           ] 23/29 (79.31%)Executing command Go to project named atlas then filter by done issues
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Go to project named atlas then filter by done issues: [Errno 111] Connection refused
+
++--------------+-----------+------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                               | Status   |   Time Taken (s) |
++==============+===========+======================================================+==========+==================+
+|           24 |        23 | Go to project named atlas then filter by done issues | Fail     |             6.47 |
++--------------+-----------+------------------------------------------------------+----------+------------------+
+Progress: [---------------------------------------->         ] 24/29 (82.76%)Executing command Based on the reviews what are top 5 reasons for customer dissatisfaction?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Based on the reviews what are top 5 reasons for customer dissatisfaction?: [Errno 111] Connection refused
+
++--------------+-----------+---------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                    | Status   |   Time Taken (s) |
++==============+===========+===========================================================================+==========+==================+
+|           25 |        24 | Based on the reviews what are top 5 reasons for customer dissatisfaction? | Fail     |             4.15 |
++--------------+-----------+---------------------------------------------------------------------------+----------+------------------+
+Progress: [------------------------------------------>       ] 25/29 (86.21%)Executing command Based on the lowest reviews what are top 5 reasons for customer dissatisfaction?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Based on the lowest reviews what are top 5 reasons for customer dissatisfaction?: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                           | Status   |   Time Taken (s) |
++==============+===========+==================================================================================+==========+==================+
+|           26 |        25 | Based on the lowest reviews what are top 5 reasons for customer dissatisfaction? | Fail     |             8.12 |
++--------------+-----------+----------------------------------------------------------------------------------+----------+------------------+
+Progress: [------------------------------------------->      ] 26/29 (89.66%)Executing command Based on the lowest reviews what are top 5 reasons for customer dissatisfaction?
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Based on the lowest reviews what are top 5 reasons for customer dissatisfaction?: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                           | Status   |   Time Taken (s) |
++==============+===========+==================================================================================+==========+==================+
+|           27 |        26 | Based on the lowest reviews what are top 5 reasons for customer dissatisfaction? | Fail     |             4.58 |
++--------------+-----------+----------------------------------------------------------------------------------+----------+------------------+
+Progress: [--------------------------------------------->    ] 27/29 (93.10%)Executing command I have a lot of Nintendo Switch game cards now, help me find the best storage option to fit all 11 cards
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command I have a lot of Nintendo Switch game cards now, help me find the best storage option to fit all 11 cards: [Errno 111] Connection refused
+
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                                                   | Status   |   Time Taken (s) |
++==============+===========+==========================================================================================================+==========+==================+
+|           28 |        27 | I have a lot of Nintendo Switch game cards now, help me find the best storage option to fit all 11 cards | Fail     |             4.13 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+Progress: [----------------------------------------------->  ] 28/29 (96.55%)Executing command Go to Apple and navigate to their return policy
+==================================================
+Current State: agentq_base
+Agent: agentq
+Current Thought:
+Plan: none
+Completed Tasks: none
+==================================================
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Retrying in 2 seconds...
+An error occurred: [Errno 111] Connection refused
+Max retries reached. Unable to complete the action.
+Error executing the command Go to Apple and navigate to their return policy: [Errno 111] Connection refused
+
++--------------+-----------+-------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                          | Status   |   Time Taken (s) |
++==============+===========+=================================================+==========+==================+
+|           29 |        28 | Go to Apple and navigate to their return policy | Fail     |             4.08 |
++--------------+-----------+-------------------------------------------------+----------+------------------+
+Progress: [------------------------------------------------->] 29/29 (100.00%)
+
+All tests completed.
+
+Detailed Test Results:
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|   Test Index |   Task ID | Intent                                                                                                   | Status   |   Time Taken (s) |
++==============+===========+==========================================================================================================+==========+==================+
+|            1 |         0 | find nothing phone 2 on amazon and sort the results by best seller                                       | Fail     |             4.44 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            2 |         1 | find nothing phone 2 on amazon and sort the results by price highest first                               | Fail     |             4.35 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            3 |         2 | find soccer on espn.com                                                                                  | Fail     |             4.41 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            4 |         3 | What is the price of Rabbit R1 on https://www.rabbit.tech/?                                              | Fail     |             4.35 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            5 |         4 | what is the largest organ of the body?                                                                   | Fail     |             4.39 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            6 |         5 | What are the names of the continents?                                                                    | Fail     |             4.35 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            7 |         6 | Find the phone number for Center for Student Life from NYU's site                                        | Fail     |             4.09 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            8 |         7 | Find the phone number for Admissions from MIT's site                                                     | Fail     |             4.13 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|            9 |         8 | Go to MIT and navigate to Alumni website                                                                 | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           10 |         9 | Go to youtube                                                                                            | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           11 |        10 | Go to national geographic                                                                                | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           12 |        11 | search the web for the library of Alexandria                                                             | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           13 |        12 | Go to amazon.com                                                                                         | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           14 |        13 | Find funny turtle videos on YouTube and play the first one                                               | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           15 |        14 | Put the video in full screen                                                                             | Fail     |             4.19 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           16 |        15 | Mute video                                                                                               | Fail     |             4.18 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           17 |        16 | find Nelson Mandela on britanica                                                                         | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           18 |        17 | go to the travel section on BBC                                                                          | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           19 |        18 | Find the shortest driving distance between JFK and LGA airports in miles                                 | Fail     |             4.32 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           20 |        19 | Find the distance from JFK to LGA                                                                        | Fail     |             4.56 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           21 |        20 | Find the shortest driving distance between CMU and MIT in miles                                          | Fail     |             4.09 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           22 |        21 | What are the top restaurants near MIT?                                                                   | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           23 |        22 | Filter by done issues                                                                                    | Fail     |             6.04 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           24 |        23 | Go to project named atlas then filter by done issues                                                     | Fail     |             6.47 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           25 |        24 | Based on the reviews what are top 5 reasons for customer dissatisfaction?                                | Fail     |             4.15 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           26 |        25 | Based on the lowest reviews what are top 5 reasons for customer dissatisfaction?                         | Fail     |             8.12 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           27 |        26 | Based on the lowest reviews what are top 5 reasons for customer dissatisfaction?                         | Fail     |             4.58 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           28 |        27 | I have a lot of Nintendo Switch game cards now, help me find the best storage option to fit all 11 cards | Fail     |             4.13 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+|           29 |        28 | Go to Apple and navigate to their return policy                                                          | Fail     |             4.08 |
++--------------+-----------+----------------------------------------------------------------------------------------------------------+----------+------------------+
+
+Summary Report:
++---------------+----------+----------+-----------+--------------------------+------------------------+
+|   Total Tests |   Passed |   Failed |   Skipped |   Average Time Taken (s) |   Total Time Taken (s) |
++===============+==========+==========+===========+==========================+========================+
+|            29 |        0 |       29 |         0 |                     4.49 |                 130.11 |
++---------------+----------+----------+-----------+--------------------------+------------------------+
+Shutting down orchestrator!

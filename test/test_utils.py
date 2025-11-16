@@ -6,12 +6,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+import ollama
 from dotenv import load_dotenv
 from nltk.tokenize import word_tokenize  # type: ignore
-from openai import OpenAI
 
 load_dotenv()
-client = OpenAI()
+client = ollama.Client()
 
 
 def llm_fuzzy_match(pred: str, reference: str, question: str) -> float:
@@ -41,8 +41,8 @@ def llm_fuzzy_match(pred: str, reference: str, question: str) -> float:
         {"role": "user", "content": message},
     ]
 
-    response = generate_from_openai_chat_completion(
-        model="gpt-4-turbo-preview",
+    response = generate_from_ollama_chat_completion(
+        model="qwen3:8b",
         messages=messages,
         temperature=0,
         max_tokens=768,
@@ -89,8 +89,8 @@ def llm_ua_match(pred: str, reference: str, question: str) -> float:
         {"role": "user", "content": message},
     ]
 
-    response = generate_from_openai_chat_completion(
-        model="gpt-4-turbo-preview",
+    response = generate_from_ollama_chat_completion(
+        model="qwen3:8b",
         messages=messages,
         temperature=0,
         max_tokens=768,
@@ -104,7 +104,7 @@ def llm_ua_match(pred: str, reference: str, question: str) -> float:
         return 1.0
 
 
-def generate_from_openai_chat_completion(
+def generate_from_ollama_chat_completion(
     messages: List[Dict[str, str]],
     model: str,
     temperature: float,
@@ -114,43 +114,25 @@ def generate_from_openai_chat_completion(
     stop_token: Optional[str] = None,
 ) -> str:
     """
-    Generates a response from OpenAI's chat completions based on a conversation constructed from a List of messages.
-
-    This function makes a call to the OpenAI API using specified parameters to control the generation.
-    It requires an API key to be set in the environment variables.
-
-    Parameters:
-        messages (List[dict[str, str]]): A List of messages to construct the conversation context.
-        model (str): The model name to use for generating the completion.
-        temperature (float): Sampling temperature for generation.
-        max_tokens (int): Maximum number of tokens to generate.
-        top_p (float): Nucleus sampling parameter controlling the size of the probability mass to sample from.
-        context_length (int): The maximum number of tokens from `messages` to use for context.
-        stop_token (str, optional): A token at which to stop generating further tokens.
-
-    Returns:
-        str: The generated response as a string.
-
-    Raises:
-        ValueError: If the 'OPENAI_API_KEY' environment variable is not set.
+    Generates a response from Ollama's chat completions based on a conversation constructed from a List of messages.
     """
-    if "OPENAI_API_KEY" not in os.environ:
-        raise ValueError(
-            "OPENAI_API_KEY environment variable must be set when using OpenAI API."
-        )
-    client.api_key = os.environ["OPENAI_API_KEY"]
-    client.organization = os.environ.get("OPENAI_ORGANIZATION", "")
+    options = {
+        "temperature": temperature,
+        "num_predict": max_tokens,
+        "top_p": top_p,
+        "num_ctx": context_length,
+        "stop": [stop_token] if stop_token else [],
+    }
+    # Filter out None values from the list
+    if stop_token is None:
+        options.pop("stop")
 
-    response = client.chat.completions.create(
+    response = client.chat(
         model=model,
         messages=messages,  # type: ignore
-        temperature=temperature,
-        max_tokens=max_tokens,
-        top_p=top_p,
-        n=1,
-        stop=[stop_token] if stop_token else None,
+        options=options,
     )
-    answer: str = response.choices[0].message.content  # type: ignore
+    answer: str = response["message"]["content"]  # type: ignore
     return answer
 
 
