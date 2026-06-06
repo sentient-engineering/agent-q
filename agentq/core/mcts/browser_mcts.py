@@ -15,7 +15,6 @@ from agentq.core.mcts.core.base import Reasoner, SearchConfig, WorldModel
 from agentq.core.mcts.core.mcts import MCTS, MCTSResult
 from agentq.core.mcts.visualization.visualizer_client import visualize
 from agentq.core.models.models import (
-    ActionType,
     AgentQActorInput,
     AgentQActorOutput,
     AgentQCriticInput,
@@ -29,13 +28,10 @@ from agentq.core.models.models import (
     VisionInput,
     VisionOutput,
 )
-from agentq.core.skills.click_using_selector import click
-from agentq.core.skills.enter_text_and_click import enter_text_and_click
-from agentq.core.skills.enter_text_using_selector import EnterTextEntry, entertext
+from agentq.core.skills.dispatch import dispatch_action
 from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_type
 from agentq.core.skills.get_screenshot import get_screenshot
 from agentq.core.skills.get_url import geturl
-from agentq.core.skills.open_url import openurl
 from agentq.core.web_driver.playwright import PlaywrightManager
 
 # ANSI color codes
@@ -103,33 +99,13 @@ class BrowserWorldModel(WorldModel[BrowserState, BrowserAction, str]):
         action = browser_action.task_with_action.actions_to_be_performed[0]
         print(f"{YELLOW}[DEBUG] Executing browser action: {action.type}{RESET}")
 
-        if action.type == ActionType.GOTO_URL:
-            print(f"{CYAN}[DEBUG] Trying to go to url{RESET}")
-            await openurl(url=action.website, timeout=action.timeout or 1)
-            print(f"{CYAN}[DEBUG] Went to url{RESET}")
-        elif action.type == ActionType.TYPE:
-            entry = EnterTextEntry(
-                query_selector=f"[mmid='{action.mmid}']",
-                text=action.content,
-            )
-            await entertext(entry)
-            # await wait_for_navigation()
-            print(f"{CYAN}[DEBUG] Typed text into element{RESET}")
-        elif action.type == ActionType.CLICK:
-            await click(
-                selector=f"[mmid='{action.mmid}']",
-                wait_before_execution=action.wait_before_execution or 2,
-            )
-            print(f"{CYAN}[DEBUG] Clicked element{RESET}")
-        elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
-            await enter_text_and_click(
-                text_selector=f"[mmid='{action.text_element_mmid}']",
-                text_to_enter=action.text_to_enter,
-                click_selector=f"[mmid='{action.click_element_mmid}']",
-                wait_before_click_execution=action.wait_before_click_execution or 2,
-            )
-            # await wait_for_navigation()
-            print(f"{CYAN}[DEBUG] Entered text and clicked element{RESET}")
+        # All browser-skill dispatch lives in the shared dispatch_action (skills/dispatch.py). This is
+        # the MCTS search-rollout execution path, so it passes the SEARCH waits (2/2/2). An unhandled
+        # ActionType raises UnhandledActionTypeError (a ValueError) — preserving the prior else-raise.
+        await dispatch_action(
+            action, click_wait=2, enter_text_and_click_wait=2, captcha_wait=2
+        )
+        print(f"{CYAN}[DEBUG] Executed {action.type} via dispatch_action{RESET}")
 
         try:
             new_dom = await self.get_current_dom()

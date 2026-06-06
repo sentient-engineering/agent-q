@@ -26,14 +26,10 @@ from agentq.core.models.models import (
     Task,
     TaskWithActions,
 )
-from agentq.core.skills.click_using_selector import click
-from agentq.core.skills.enter_text_and_click import enter_text_and_click
-from agentq.core.skills.enter_text_using_selector import EnterTextEntry, entertext
+from agentq.core.skills.dispatch import dispatch_action, UnhandledActionTypeError
 from agentq.core.skills.get_dom_with_content_type import get_dom_with_content_type
 from agentq.core.skills.get_screenshot import get_screenshot
 from agentq.core.skills.get_url import geturl
-from agentq.core.skills.open_url import openurl
-from agentq.core.skills.solve_captcha import solve_captcha
 from agentq.core.web_driver.playwright import PlaywrightManager
 
 init(autoreset=True)
@@ -395,46 +391,22 @@ class Orchestrator:
 
             for attempt in range(max_retries):
                 try:
+                    # Every action dispatches identically (real-loop waits 1/1.5/1); only GOTO needs the
+                    # extra post-navigation settle. dispatch_action stays inside this retry `try`, so a
+                    # transient failure still retries. openurl already waits for networkidle internally
+                    # (skills/open_url.py); the wait below is defensive redundancy, scoped to GOTO.
+                    result = await dispatch_action(
+                        action, click_wait=1, enter_text_and_click_wait=1.5, captcha_wait=1
+                    )
                     if action.type == ActionType.GOTO_URL:
-                        result = await openurl(
-                            url=action.website, timeout=action.timeout or 1
-                        )
                         await page.wait_for_load_state("networkidle", timeout=10000)
-                        print("Action - GOTO")
-                    elif action.type == ActionType.TYPE:
-                        entry = EnterTextEntry(
-                            query_selector=f"[mmid='{action.mmid}']",
-                            text=action.content,
-                        )
-                        result = await entertext(entry)
-                        print("Action - TYPE")
-                    elif action.type == ActionType.CLICK:
-                        result = await click(
-                            selector=f"[mmid='{action.mmid}']",
-                            wait_before_execution=action.wait_before_execution or 1,
-                        )
-                        print("Action - CLICK")
-                    elif action.type == ActionType.ENTER_TEXT_AND_CLICK:
-                        result = await enter_text_and_click(
-                            text_selector=f"[mmid='{action.text_element_mmid}']",
-                            text_to_enter=action.text_to_enter,
-                            click_selector=f"[mmid='{action.click_element_mmid}']",
-                            wait_before_click_execution=action.wait_before_click_execution
-                            or 1.5,
-                        )
-                        print("Action - ENTER TEXT AND CLICK")
-                    elif action.type == ActionType.SOLVE_CAPTCHA:
-                        result = await solve_captcha(
-                            text_selector=f"[mmid='{action.text_element_mmid}']",
-                            click_selector=f"[mmid='{action.click_element_mmid}']",
-                            wait_before_click_execution=action.wait_before_click_execution
-                            or 1,
-                        )
-                    else:
-                        result = f"Unsupported action type: {action.type}"
 
                     results.append(result)
                     break  # If successful, break out of the retry loop
+                except UnhandledActionTypeError:
+                    # An unknown/future ActionType is a coverage error, not a transient failure —
+                    # surface it immediately instead of retrying 3x and swallowing it into a string.
+                    raise
                 except Exception as e:
                     print(f"Error during action {action.type}: {e}")
                     if attempt < max_retries - 1:

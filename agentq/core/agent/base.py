@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Callable, List, Optional, Tuple, Type
+from typing import Callable, Dict, List, Literal, Optional, Tuple, Type, get_args
 
 import instructor
 import instructor.patch
@@ -13,6 +13,57 @@ from pydantic import BaseModel
 from agentq.utils.function_utils import get_function_schema
 from agentq.utils.logger import logger
 
+# ── Typed LLM-provider selection seam (Piece 1: DeepSeek wiring) ───────────
+# agent-q's LLM client is an OpenAI-API-compatible client wrapped by
+# ``instructor`` (Mode.JSON). Provider selection is a single typed seam:
+# a ``ProviderKind`` discriminator, a provider→client-factory registry, and
+# a provider→default-model map. This keeps all agents source-agnostic (one
+# seam, not a ``client=`` threaded through every subclass) and makes provider
+# validity / key presence decidable-in-code via ``ProviderConfigError`` rather
+# than a silent ``AttributeError`` / bare ``KeyError``.
+ProviderKind = Literal["openai", "together", "deepseek"]
+
+
+class ProviderConfigError(ValueError):
+    """Raised when the selected LLM provider is unknown, or its required API
+    key is absent. A named, decidable failure — never a bare KeyError or a
+    silent fall-through that leaves ``self.client`` unset."""
+
+
+def _make_openai_client() -> openai.OpenAI:
+    return openai.Client()
+
+
+def _make_together_client() -> openai.OpenAI:
+    key = os.environ.get("TOGETHER_API_KEY")
+    if not key:
+        raise ProviderConfigError(
+            "Provider 'together' selected but TOGETHER_API_KEY is not set."
+        )
+    return openai.OpenAI(base_url="https://api.together.xyz/v1", api_key=key)
+
+
+def _make_deepseek_client() -> openai.OpenAI:
+    key = os.environ.get("DEEPSEEK_API_KEY")
+    if not key:
+        raise ProviderConfigError(
+            "Provider 'deepseek' selected but DEEPSEEK_API_KEY is not set."
+        )
+    return openai.OpenAI(base_url="https://api.deepseek.com/v1", api_key=key)
+
+
+_PROVIDER_CLIENT_FACTORIES: Dict[ProviderKind, Callable[[], openai.OpenAI]] = {
+    "openai": _make_openai_client,
+    "together": _make_together_client,
+    "deepseek": _make_deepseek_client,
+}
+
+_PROVIDER_MODEL_MAP: Dict[ProviderKind, str] = {
+    "openai": "gpt-4o-2024-08-06",
+    "together": "gpt-4o-2024-08-06",
+    "deepseek": "deepseek-chat",
+}
+
 
 class BaseAgent:
     def __init__(
@@ -23,7 +74,7 @@ class BaseAgent:
         output_format: Type[BaseModel],
         tools: Optional[List[Tuple[Callable, str]]] = None,
         keep_message_history: bool = True,
-        client: str = "openai",
+        client: Optional[ProviderKind] = None,
     ):
         # Metdata
         self.agent_name = name
@@ -44,16 +95,22 @@ class BaseAgent:
         litellm.logging = True
         litellm.set_verbose = True
 
-        # Llm client
-        if client == "openai":
-            self.client = openai.Client()
-        elif client == "together":
-            self.client = openai.OpenAI(
-                base_url="https://api.together.xyz/v1",
-                api_key=os.environ["TOGETHER_API_KEY"],
+        # LLM client — typed, env-driven provider selection at ONE seam.
+        # Explicit ``client=`` wins; otherwise read AGENTQ_LLM_PROVIDER (so the
+        # zero-arg orchestrated agents all pick up the selected provider).
+        provider = (client or os.environ.get("AGENTQ_LLM_PROVIDER", "openai")).strip().lower()
+        if provider not in get_args(ProviderKind):
+            raise ProviderConfigError(
+                f"Unknown LLM provider {provider!r}; "
+                f"must be one of {list(get_args(ProviderKind))}."
             )
-
-        self.client = instructor.from_openai(self.client, mode=Mode.JSON)
+        self.provider: ProviderKind = provider  # type: ignore[assignment]
+        # Registry lookup + named fail-fast (never a silent self.client-unset path).
+        self.client = instructor.from_openai(
+            _PROVIDER_CLIENT_FACTORIES[provider](), mode=Mode.JSON
+        )
+        # Provider-bound default model, resolved once from typed state.
+        self._default_model: str = _PROVIDER_MODEL_MAP[provider]
 
         # Tools
         self.tools_list = []
@@ -76,8 +133,12 @@ class BaseAgent:
         screenshot: str = None,
         session_id: str = None,
         # model: str = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-        model: str = "gpt-4o-2024-08-06",
+        model: Optional[str] = None,
     ) -> BaseModel:
+        # Default to the provider-bound model chosen at construction time
+        # (self._default_model); an explicit model= override still wins.
+        if model is None:
+            model = self._default_model
         if not isinstance(input_data, self.input_format):
             raise ValueError(f"Input data must be of type {self.input_format.__name__}")
 
